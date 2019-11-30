@@ -3,39 +3,41 @@
 //--------------------------------------------------------------------------------------------------------//
 var main=function() 
 {
-		// HELPER VARIABLES
-  var Vec3 = matrixHelper.vector3;
-  var Mat4x4 = matrixHelper.matrix4;
+		{ // HELPER VARIABLES
+				var Vec3 = matrixHelper.vector3;
+				var Mat4x4 = matrixHelper.matrix4;
+				var pi = 3.14159265359;
+		}
 
-  // Initialise context (canvas, gl)
+		{ // INITIALISE CONTEXT (CANVAS, GL)
+				{ // GET REFERENCE TO CANVAS
+						var canvas = document.getElementById("canvas-cg-lab");
+						canvas.width = window.innerWidth;
+						canvas.height = window.innerHeight;
+						canvas.aspect = canvas.width / canvas.height;
+				}
+				{ // ASSIGN CONTEXT TO GL
+						var gl = null;
+						try { gl = canvas.getContext("experimental-webgl", {antialias: true}); }
+						catch (e) {alert("No webGL compatibility detected!"); return false;}
+				}
+		}
 
-  // Get reference to canvas
-  var canvas = document.getElementById("canvas-cg-lab");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  canvas.aspect = canvas.width / canvas.height;
+		{ // SET UP GAME
+				var game = new Game();
+				document.addEventListener( 'keydown', function(e){ game.keysDown[e.keyCode] = true; } );
+				document.addEventListener( 'keyup', function(e){ game.keysDown[e.keyCode] = false; } );
+		}
 
-  // Assign context to gl
-  var gl = null;
-  try { gl = canvas.getContext("experimental-webgl", {antialias: true}); }
-  catch (e) {alert("No webGL compatibility detected!"); return false;}
+		{ // SET UP SCENE
+				scene = new Scene();
+				scene.initialise(gl, canvas);
+		}
 
-  //--------------------------------------------------------------------------------------------------------//
-  // SET UP GAME
-  //--------------------------------------------------------------------------------------------------------//
-		var game = new Game();
-
-  //--------------------------------------------------------------------------------------------------------//
-  // SET UP SCENE
-  //--------------------------------------------------------------------------------------------------------//
-  scene = new Scene();
-  scene.initialise(gl, canvas);
-
-  //--------------------------------------------------------------------------------------------------------//
-  // SET UP PRIMITIVES
-  //--------------------------------------------------------------------------------------------------------//
-  var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
-		var quad = makeCuboid([0,0,0], 1, 1, 1);
+		{ // SET UP PRIMITIVES
+				var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
+				var quad = makeCuboid([0,0,0], 1, 1, 1);
+		}
 
 		{ // SET UP GEOMETRY
 				{ // WALLS
@@ -92,11 +94,11 @@ var main=function()
   //--------------------------------------------------------------------------------------------------------//
   var light = new Light();
   //light.type = Light.LIGHT_TYPE.SPOT;
-  light.type = Light.LIGHT_TYPE.POINT;
-  //light.type = Light.LIGHT_TYPE.DIRECTIONAL;
+  //light.type = Light.LIGHT_TYPE.POINT;
+  light.type = Light.LIGHT_TYPE.DIRECTIONAL;
   light.setDiffuse([2, 2, 2]);
   light.setSpecular([1, 1, 1]);
-  light.setAmbient([0.2, 0.2, 0.2]);
+  light.setAmbient([0.1, 0.1, 0.1]);
   light.setPosition([0, 0, 2.5]);
   light.setDirection([0, 0, -1]);
   light.setCone(0.7, 0.6);
@@ -106,54 +108,67 @@ var main=function()
   //--------------------------------------------------------------------------------------------------------//
   // Set up textures and materials
   //--------------------------------------------------------------------------------------------------------//
-  var material = new Material();
   var textureList = new Textures();
   convertTextures(textureList);
 
-  material.setAlbedo(gl, textureList.venus);
-  material.setShininess(96.0);
-  material.setSpecular([1,1,1]);
-  material.setAmbient([1,1,1]);
-  material.setDiffuse([1,1,1]);
-  material.bind(gl, scene.shaderProgram);
+		{ // CREATE THE MATERIALS
+				var material_shiny = new Material();
+				var material_diffuse_brick = new Material();
+				var material_diffuse_platform = new Material();
+				var material_diffuse_wall = new Material();
 
-  var material2 = new Material();
-
-  material2.setAlbedo(gl, textureList.earth);
-  material2.setDiffuse([1,1,1]);
-  material2.setShininess(0.0);
-  material2.setSpecular([0,0,0]);
-  material2.setAmbient([1,1,1]);
-  material2.bind(gl, scene.shaderProgram);
-
-  var material3 = new Material();
-
-  material3.setAlbedo(gl, textureList.earth);
-  material3.setDiffuse([1,1,1]);
-  material3.setShininess(8.0);
-  material3.setSpecular([1,1,1]);
-  material3.setAmbient([0.2,0.2,0.2]);
-  material3.bind(gl, scene.shaderProgram);
-
-  //--------------------------------------------------------------------------------------------------------//
-		// GIVE MATERIALS TO OBJECTS
-  //--------------------------------------------------------------------------------------------------------//
-		wallLeft.material = wallRight.material = wallTop.material = material;
-		platform.material = material;
-		ball.material = material;
-		for(var r = 0; r < game.brickRows; ++r){
-				for(var c = 0; c < game.brickColumns; ++c){
-						bricks[r][c].material = material3;
+				{ // BRICK
+						material_diffuse_brick.setAlbedo(gl, textureList.wood);
+						material_diffuse_brick.setShininess(10.0);
+						material_diffuse_brick.setSpecular([0,0,0]);
+						material_diffuse_brick.setAmbient([1,1,1]);
+						material_diffuse_brick.setDiffuse([1,1,1]);
+						material_diffuse_brick.bind(gl, scene.shaderProgram);
+				}
+				{ // PLATFORM
+						material_diffuse_platform.setAlbedo(gl, textureList.wood2);
+						material_diffuse_platform.setShininess(10.0);
+						material_diffuse_platform.setSpecular([0,0,0]);
+						material_diffuse_platform.setAmbient([1,1,1]);
+						material_diffuse_platform.setDiffuse([1,1,1]);
+						material_diffuse_platform.bind(gl, scene.shaderProgram);
+				}
+				{ // WALL
+						material_diffuse_wall.setAlbedo(gl, textureList.wood3);
+						material_diffuse_wall.setShininess(10.0);
+						material_diffuse_wall.setSpecular([0,0,0]);
+						material_diffuse_wall.setAmbient([1,1,1]);
+						material_diffuse_wall.setDiffuse([1,1,1]);
+						material_diffuse_wall.bind(gl, scene.shaderProgram);
+				}
+				{ // BALL
+						material_shiny.setAlbedo(gl, textureList.iron);
+						material_shiny.setShininess(300);
+						material_shiny.setSpecular([1,1,1]);
+						material_shiny.setAmbient([1,1,1]);
+						material_shiny.setDiffuse([1,1,1]);
+						material_shiny.bind(gl, scene.shaderProgram);
 				}
 		}
 
-  //--------------------------------------------------------------------------------------------------------//
-  // SET UP SCENE GRAPH
-  //--------------------------------------------------------------------------------------------------------//
-  var lightNode = scene.addNode(scene.root, light, "lightNode", Node.NODE_TYPE.LIGHT);
+		{ // GIVE MATERIALS TO OBJECTS
+				wallLeft.material = wallRight.material = wallTop.material = material_diffuse_wall;
 
-		{
+				platform.material = material_diffuse_platform;
+
+				ball.material = material_shiny;
+
+				for(var r = 0; r < game.brickRows; ++r){
+						for(var c = 0; c < game.brickColumns; ++c){
+								bricks[r][c].material = material_diffuse_brick;
+						}
+				}
+		}
+
+		{ // SET UP SCENE GRAPH
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
+
+				var lightNode = scene.addNode(scene.root, light, "lightNode", Node.NODE_TYPE.LIGHT);
 				{ // ADD WALLS
 						var wallLeftNode = scene.addNode(lightNode, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
@@ -188,7 +203,7 @@ var main=function()
 								brickNodes.push([]);
 								for(var c = 0; c < game.brickColumns; ++c){
 									 var brickNode = scene.addNode(lightNode, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
-									Mat4x4.makeTranslation(brickNode.transform, [ c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r,0]);
+										Mat4x4.makeTranslation(brickNode.transform, [ c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r,0]);
 										Mat4x4.makeScaling(scalingMatrix, [((game.wallWidth-1)/(game.brickColumns)) * 0.9, 0.9 * 3.0 / game.brickRows, 1]);
 										Mat4x4.multiply( brickNode.transform, brickNode.transform, scalingMatrix);
 								}
@@ -196,28 +211,18 @@ var main=function()
 						}
 				}
 		}
-  //var wallRightNode = scene.addNode(scene.root, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
-  //var wallTopNode = scene.addNode(scene.root, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
-  //var sphereNode = scene.addNode(lightNode, model, "sphereNode", Node.NODE_TYPE.MODEL);
-  //var sphereNode2 = scene.addNode(sphereNode, model2, "sphereNode2", Node.NODE_TYPE.MODEL);
-  //var quadNode = scene.addNode(scene.root, model3, "quadNode", Node.NODE_TYPE.MODEL);
 
-  //--------------------------------------------------------------------------------------------------------//
-  // Set up animation
-  //--------------------------------------------------------------------------------------------------------//
-  var ang = 0;
+  { // Set up animation
+				platformNode.animationCallback = function(deltaTime){
+						if(game.keysDown[37]){
+								game.platformPositionX -= game.platformSpeed;
+						}
+						if(game.keysDown[39]){
+								game.platformPositionX += game.platformSpeed;
+						}
+				}
+		}
 
-  /*sphereNode2.animationCallback = function(deltaTime) {
-    ang += deltaTime / 1000;
-    this.transform[13] = Math.cos(ang) * 3;
-  };*/
-
-  // quadNode.animationCallback = function(deltaTime) {
-  //   ang += deltaTime / 1000;
-  //   this.transform[13] = Math.cos(ang) * 3;
-  // };
-
-  var theta = 0;
   var lightTransform = Mat4x4.create();
   var modelTransform = Mat4x4.create(); 
   var viewTransform = Mat4x4.create(); 
@@ -235,13 +240,47 @@ var main=function()
 
   var animate=function() 
   {
-    theta += 0.01; // Increment rotation angle
+				{ // PLATFORM MOVEMENT
+						Mat4x4.makeTranslation(platformNode.transform, [game.platformPositionX,-game.wallHeight/2 + 0.25,0]);
+						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
+						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
+				}
+
+				{ // CAMERA MOVEMENT
+						if(game.keysDown[81]){       // pressing Q
+								game.cameraAngle = game.cameraGrazingAngle; // grazing
+						}else if(game.keysDown[69]){ // pressing E
+								game.cameraAngle = 0;  // top view
+						}else if(game.keysDown[87]){ // Pressing W
+								game.cameraAngle += game.cameraSpeed;
+								if(game.cameraAngle > game.cameraGrazingAngle){
+										game.cameraAngle = game.cameraGrazingAngle;
+								}
+						}
+						else if(game.keysDown[83]){ // Pressing S
+								game.cameraAngle -= game.cameraSpeed;
+								if(game.cameraAngle < 0){
+										game.cameraAngle = 0;
+								}
+						}
+						else if(game.keysDown[82]){ // Pressing R
+								game.cameraSpeed += game.cameraAcceleration;
+								if(game.cameraSpeed > game.maxCameraSpeed){
+										game.cameraSpeed = game.maxCameraSpeed;
+								}
+						}
+						else if(game.keysDown[84]){ // Pressing T
+								game.cameraSpeed -= game.cameraAcceleration;
+								if(game.cameraSpeed < game.minCameraSpeed){
+										game.cameraSpeed = game.minCameraSpeed;
+								}
+						}
+				}
 
     //Mat4x4.makeTranslation(sphereNode2.transform, [10,0,0]);
-
-    Mat4x4.makeRotationY(viewTransform, theta);  // rotate camera about y
-    Mat4x4.multiplyPoint(observer, viewTransform, [0,0,15]);  // apply camera rotation   
-    scene.lookAt(observer, [0,0,0], [0,1,0]);
+				Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
+    Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
+    scene.lookAt(observer, [0,0,0], [0,10,0]);
 
     scene.beginFrame();
     scene.animate();
