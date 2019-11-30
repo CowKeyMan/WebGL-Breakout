@@ -31,44 +31,56 @@ var main=function()
   var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
 		var quad = makeCuboid([0,0,0], 1, 1, 1);
 
-  var wallLeft = new Model();
-  wallLeft.name = "wallLeft";
-  wallLeft.index = quad.index;
-  wallLeft.vertex = quad.vertex;
-  wallLeft.compile(scene);
-		
-  var wallRight = new Model();
-  wallRight.name = "wallRight";
-  wallRight.index = quad.index;
-  wallRight.vertex = quad.vertex;
-  wallRight.compile(scene);
-		
-  var wallTop = new Model();
-  wallTop.name = "wallTop";
-  wallTop.index = quad.index;
-  wallTop.vertex = quad.vertex;
-  wallTop.compile(scene);
-		
+		{ // SET UP GEOMETRY
+				{ // WALLS
+						var wallLeft = new Model();
+						wallLeft.name = "wallLeft";
+						wallLeft.index = quad.index;
+						wallLeft.vertex = quad.vertex;
+						wallLeft.compile(scene);
+				
+						var wallRight = new Model();
+						wallRight.name = "wallRight";
+						wallRight.index = quad.index;
+						wallRight.vertex = quad.vertex;
+						wallRight.compile(scene);
 
-  // Create two objects, reusing the same model geometry
-  /*var model = new Model();
-  model.name = "sphere";
-  model.index = sphere.index;
-  model.vertex = sphere.vertex;
-  model.compile(scene);
-
-  var model2 = new Model();
-  model2.name = "sphere2";
-  model2.index = sphere.index;
-  model2.vertex = sphere.vertex;
-  model2.compile(scene);
-
-
-  var model3 = new Model();
-  model3.name = "quad";
-  model3.index = quad.index;
-  model3.vertex = quad.vertex;
-  model3.compile(scene);*/
+						var wallTop = new Model();
+						wallTop.name = "wallTop";
+						wallTop.index = quad.index;
+						wallTop.vertex = quad.vertex;
+						wallTop.compile(scene);
+				}
+				{ // PLATFORM
+						var platform = new Model();
+						platform.name = "platform";
+						platform.index = quad.index;
+						platform.vertex = quad.vertex;
+						platform.compile(scene);
+				}
+				{ // ADD BALL
+						var ball = new Model();
+						ball.name = "platform";
+						ball.index = sphere.index;
+						ball.vertex = sphere.vertex;
+						ball.compile(scene);
+				}
+				{ // ADD BRICKS
+						var bricks = [];
+						var brickRows = 3, brickColumns = 15;
+						for(var r = 0; r < brickRows; ++r){
+								bricks.push([]);
+								for(var c = 0; c < brickColumns; ++c){
+										var brick = new Model();
+										brick.name = "brick".concat(r, c);
+										brick.index = quad.index;
+										brick.vertex = quad.vertex;
+										brick.compile(scene);
+										bricks[r].push(brick);
+								}
+						}
+				}
+		}
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up lights
@@ -122,30 +134,63 @@ var main=function()
 		// GIVE MATERIALS TO OBJECTS
   //--------------------------------------------------------------------------------------------------------//
 		wallLeft.material = wallRight.material = wallTop.material = material;
+		platform.material = material;
+		ball.material = material;
+		for(var r = 0; r < brickRows; ++r){
+				for(var c = 0; c < brickColumns; ++c){
+						bricks[r][c].material = material3;
+				}
+		}
 
   //--------------------------------------------------------------------------------------------------------//
   // SET UP SCENE GRAPH
   //--------------------------------------------------------------------------------------------------------//
   var lightNode = scene.addNode(scene.root, light, "lightNode", Node.NODE_TYPE.LIGHT);
 
-		// ADD WALLS
-		var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
+		{
+				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
+				{ // ADD WALLS
+						var wallLeftNode = scene.addNode(lightNode, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(wallLeftNode.transform, [-8,0,0]);
+						Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
+						Mat4x4.multiply( wallLeftNode.transform, wallLeftNode.transform, scalingMatrix);
 
-  var wallLeftNode = scene.addNode(lightNode, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
-		Mat4x4.makeTranslation(wallLeftNode.transform, [-8,0,0]);
-		Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
-		Mat4x4.multiply( wallLeftNode.transform, scalingMatrix, wallLeftNode.transform);
+						var wallRightNode = scene.addNode(lightNode, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(wallRightNode.transform, [8,0,0]);
+						Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
+						Mat4x4.multiply( wallRightNode.transform, wallRightNode.transform, scalingMatrix);
 
-  var wallRightNode = scene.addNode(lightNode, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
-		Mat4x4.makeTranslation(wallRightNode.transform, [8,0,0]);
-		Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
-		Mat4x4.multiply( wallRightNode.transform, scalingMatrix, wallRightNode.transform);
-
-  var wallTopNode = scene.addNode(lightNode, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
-		Mat4x4.makeTranslation(wallTopNode.transform, [0,5,0]);
-		Mat4x4.makeScaling(scalingMatrix, [16 + 1,1,1]);
-		Mat4x4.multiply( wallTopNode.transform, scalingMatrix, wallTopNode.transform);
-
+						var wallTopNode = scene.addNode(lightNode, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(wallTopNode.transform, [0,5.5,0]);
+						Mat4x4.makeScaling(scalingMatrix, [16 + 1,1,1]);
+						Mat4x4.multiply( wallTopNode.transform, wallTopNode.transform, scalingMatrix);
+				}
+				{ // ADD PLATFORM
+						var platformNode = scene.addNode(lightNode, platform, "platformNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(platformNode.transform, [0,-4.5,0]);
+						Mat4x4.makeScaling(scalingMatrix, [4,0.5,1]);
+						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
+				}
+				{ // ADD BALL
+					 var ballNode = scene.addNode(lightNode, ball, "ballNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(ballNode.transform, [0,-3.75,0]);
+						Mat4x4.makeScaling(scalingMatrix, [0.5,0.5,0.5]);
+						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
+				}
+				{ // ADD BRICKS
+						var brickNodes = []
+						for(var r = 0; r < brickRows; ++r){
+								brickNodes.push([]);
+								for(var c = 0; c < brickColumns; ++c){
+									 var brickNode = scene.addNode(lightNode, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
+										Mat4x4.makeTranslation(brickNode.transform, [-brickColumns/2 + c + 0.5,4.5 - r,0]);
+										Mat4x4.makeScaling(scalingMatrix, [0.9,0.9,0.9]);
+										Mat4x4.multiply( brickNode.transform, brickNode.transform, scalingMatrix);
+								}
+								brickNodes[r].push(brickNode);
+						}
+				}
+		}
   //var wallRightNode = scene.addNode(scene.root, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
   //var wallTopNode = scene.addNode(scene.root, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
   //var sphereNode = scene.addNode(lightNode, model, "sphereNode", Node.NODE_TYPE.MODEL);
