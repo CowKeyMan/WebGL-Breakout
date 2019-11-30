@@ -3,6 +3,7 @@
 //--------------------------------------------------------------------------------------------------------//
 var main=function() 
 {
+		// HELPER VARIABLES
   var Vec3 = matrixHelper.vector3;
   var Mat4x4 = matrixHelper.matrix4;
 
@@ -20,13 +21,18 @@ var main=function()
   catch (e) {alert("No webGL compatibility detected!"); return false;}
 
   //--------------------------------------------------------------------------------------------------------//
-  // Set up scene
+  // SET UP GAME
+  //--------------------------------------------------------------------------------------------------------//
+		var game = new Game();
+
+  //--------------------------------------------------------------------------------------------------------//
+  // SET UP SCENE
   //--------------------------------------------------------------------------------------------------------//
   scene = new Scene();
   scene.initialise(gl, canvas);
 
   //--------------------------------------------------------------------------------------------------------//
-  // Set up geometry
+  // SET UP PRIMITIVES
   //--------------------------------------------------------------------------------------------------------//
   var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
 		var quad = makeCuboid([0,0,0], 1, 1, 1);
@@ -67,10 +73,9 @@ var main=function()
 				}
 				{ // ADD BRICKS
 						var bricks = [];
-						var brickRows = 3, brickColumns = 15;
-						for(var r = 0; r < brickRows; ++r){
+						for(var r = 0; r < game.brickRows; ++r){
 								bricks.push([]);
-								for(var c = 0; c < brickColumns; ++c){
+								for(var c = 0; c < game.brickColumns; ++c){
 										var brick = new Model();
 										brick.name = "brick".concat(r, c);
 										brick.index = quad.index;
@@ -136,8 +141,8 @@ var main=function()
 		wallLeft.material = wallRight.material = wallTop.material = material;
 		platform.material = material;
 		ball.material = material;
-		for(var r = 0; r < brickRows; ++r){
-				for(var c = 0; c < brickColumns; ++c){
+		for(var r = 0; r < game.brickRows; ++r){
+				for(var c = 0; c < game.brickColumns; ++c){
 						bricks[r][c].material = material3;
 				}
 		}
@@ -151,40 +156,40 @@ var main=function()
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
 				{ // ADD WALLS
 						var wallLeftNode = scene.addNode(lightNode, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(wallLeftNode.transform, [-8,0,0]);
-						Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
+						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
+						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallLeftNode.transform, wallLeftNode.transform, scalingMatrix);
 
 						var wallRightNode = scene.addNode(lightNode, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(wallRightNode.transform, [8,0,0]);
-						Mat4x4.makeScaling(scalingMatrix, [1,10,1]);
+						Mat4x4.makeTranslation(wallRightNode.transform, [game.wallWidth/2,0,0]);
+						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallRightNode.transform, wallRightNode.transform, scalingMatrix);
 
 						var wallTopNode = scene.addNode(lightNode, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(wallTopNode.transform, [0,5.5,0]);
-						Mat4x4.makeScaling(scalingMatrix, [16 + 1,1,1]);
+						Mat4x4.makeTranslation(wallTopNode.transform, [0,game.wallHeight/2+0.5,0]);
+						Mat4x4.makeScaling(scalingMatrix, [game.wallWidth + 1,1,1]);
 						Mat4x4.multiply( wallTopNode.transform, wallTopNode.transform, scalingMatrix);
 				}
 				{ // ADD PLATFORM
 						var platformNode = scene.addNode(lightNode, platform, "platformNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(platformNode.transform, [0,-4.5,0]);
-						Mat4x4.makeScaling(scalingMatrix, [4,0.5,1]);
+						Mat4x4.makeTranslation(platformNode.transform, [0,-game.wallHeight/2 + 0.25,0]);
+						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
 						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
 				}
 				{ // ADD BALL
 					 var ballNode = scene.addNode(lightNode, ball, "ballNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(ballNode.transform, [0,-3.75,0]);
-						Mat4x4.makeScaling(scalingMatrix, [0.5,0.5,0.5]);
+						Mat4x4.makeTranslation(ballNode.transform, [0,-game.wallHeight/2 + 0.5 + game.ballScale,0]);
+						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
 				{ // ADD BRICKS
 						var brickNodes = []
-						for(var r = 0; r < brickRows; ++r){
+						for(var r = 0; r < game.brickRows; ++r){
 								brickNodes.push([]);
-								for(var c = 0; c < brickColumns; ++c){
+								for(var c = 0; c < game.brickColumns; ++c){
 									 var brickNode = scene.addNode(lightNode, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
-										Mat4x4.makeTranslation(brickNode.transform, [-brickColumns/2 + c + 0.5,4.5 - r,0]);
-										Mat4x4.makeScaling(scalingMatrix, [0.9,0.9,0.9]);
+									Mat4x4.makeTranslation(brickNode.transform, [ c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r,0]);
+										Mat4x4.makeScaling(scalingMatrix, [((game.wallWidth-1)/(game.brickColumns)) * 0.9, 0.9 * 3.0 / game.brickRows, 1]);
 										Mat4x4.multiply( brickNode.transform, brickNode.transform, scalingMatrix);
 								}
 								brickNodes[r].push(brickNode);
@@ -235,7 +240,7 @@ var main=function()
     //Mat4x4.makeTranslation(sphereNode2.transform, [10,0,0]);
 
     Mat4x4.makeRotationY(viewTransform, theta);  // rotate camera about y
-    //Mat4x4.multiplyPoint(observer, viewTransform, [0,0,15]);  // apply camera rotation   
+    Mat4x4.multiplyPoint(observer, viewTransform, [0,0,15]);  // apply camera rotation   
     scene.lookAt(observer, [0,0,0], [0,1,0]);
 
     scene.beginFrame();
