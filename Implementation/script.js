@@ -92,18 +92,27 @@ var main=function()
   //--------------------------------------------------------------------------------------------------------//
   // Set up lights
   //--------------------------------------------------------------------------------------------------------//
-  var light = new Light();
   //light.type = Light.LIGHT_TYPE.SPOT;
   //light.type = Light.LIGHT_TYPE.POINT;
-  light.type = Light.LIGHT_TYPE.DIRECTIONAL;
-  light.setDiffuse([2, 2, 2]);
-  light.setSpecular([1, 1, 1]);
-  light.setAmbient([0.1, 0.1, 0.1]);
-  light.setPosition([0, 0, 2.5]);
-  light.setDirection([0, 0, -1]);
-  light.setCone(0.7, 0.6);
-  light.attenuation = Light.ATTENUATION_TYPE.NONE;
-  light.bind(gl, scene.shaderProgram, 0);
+  var light_directional = new Light();
+  light_directional.type = Light.LIGHT_TYPE.DIRECTIONAL;
+  light_directional.setDiffuse([2, 2, 2]);
+  light_directional.setSpecular([1, 1, 1]);
+  light_directional.setAmbient([0.1, 0.1, 0.1]);
+  light_directional.setPosition([0, 0, 2.5]);
+  light_directional.setDirection([0, 0, -1]);
+  light_directional.setCone(0.7, 0.6);
+  light_directional.attenuation = Light.ATTENUATION_TYPE.NONE;
+  light_directional.bind(gl, scene.shaderProgram, 0);
+
+		var light_point = new Light();
+  light_point.type = Light.LIGHT_TYPE.POINT;
+  light_point.setDiffuse([5, 5, 5]);
+  light_point.setSpecular([1, 1, 1]);
+  light_point.setAmbient([1, 1, 1]);
+  light_point.setPosition([0, 0, 0]);
+  light_point.attenuation = Light.ATTENUATION_TYPE.QUAD;
+  light_point.bind(gl, scene.shaderProgram, 0);
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up textures and materials
@@ -168,47 +177,48 @@ var main=function()
 		{ // SET UP SCENE GRAPH
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
 
-				var lightNode = scene.addNode(scene.root, light, "lightNode", Node.NODE_TYPE.LIGHT);
+				//var lightNode_point = scene.addNode(scene.root, light_point, "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				var lightNode_directional = scene.addNode(scene.root, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
 				{ // ADD WALLS
-						var wallLeftNode = scene.addNode(lightNode, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
+						var wallLeftNode = scene.addNode(lightNode_directional, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
 						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallLeftNode.transform, wallLeftNode.transform, scalingMatrix);
 
-						var wallRightNode = scene.addNode(lightNode, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
+						var wallRightNode = scene.addNode(lightNode_directional, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallRightNode.transform, [game.wallWidth/2,0,0]);
 						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallRightNode.transform, wallRightNode.transform, scalingMatrix);
 
-						var wallTopNode = scene.addNode(lightNode, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
+						var wallTopNode = scene.addNode(lightNode_directional, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallTopNode.transform, [0,game.wallHeight/2+0.5,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.wallWidth + 1,1,1]);
 						Mat4x4.multiply( wallTopNode.transform, wallTopNode.transform, scalingMatrix);
 				}
 				{ // ADD PLATFORM
-						var platformNode = scene.addNode(lightNode, platform, "platformNode", Node.NODE_TYPE.MODEL);
+						var platformNode = scene.addNode(lightNode_directional, platform, "platformNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(platformNode.transform, [0,-game.wallHeight/2 + 0.25,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
 						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
-				}
-				{ // ADD BALL
-					 var ballNode = scene.addNode(lightNode, ball, "ballNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(ballNode.transform, [0,-game.wallHeight/2 + 0.5 + game.ballScale,0]);
-						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
-						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
 				{ // ADD BRICKS
 						var brickNodes = []
 						for(var r = 0; r < game.brickRows; ++r){
 								brickNodes.push([]);
 								for(var c = 0; c < game.brickColumns; ++c){
-									 var brickNode = scene.addNode(lightNode, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
+									 var brickNode = scene.addNode(lightNode_directional, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
 										Mat4x4.makeTranslation(brickNode.transform, [ c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r,0]);
 										Mat4x4.makeScaling(scalingMatrix, [((game.wallWidth-1)/(game.brickColumns)) * 0.9, 0.9 * 3.0 / game.brickRows, 1]);
 										Mat4x4.multiply( brickNode.transform, brickNode.transform, scalingMatrix);
 								}
 								brickNodes[r].push(brickNode);
 						}
+				}
+				{ // ADD BALL
+					 var ballNode = scene.addNode(lightNode_directional, ball, "ballNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeTranslation(ballNode.transform, [0,-game.wallHeight/2 + 0.5 + game.ballScale,0]);
+						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
+						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
 		}
 
@@ -221,6 +231,10 @@ var main=function()
 								game.platformPositionX += game.platformSpeed;
 						}
 				}
+
+				/*lightNode_point.animationCallback = function(deltaTime){
+						lightNode_point.nodeObject.position = [5,0,0];
+				}*/
 		}
 
   var lightTransform = Mat4x4.create();
