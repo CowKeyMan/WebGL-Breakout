@@ -25,8 +25,8 @@ var main=function()
 
 		{ // SET UP GAME
 				var game = new Game();
-				document.addEventListener( 'keydown', function(e){ game.keysDown[e.keyCode] = true; } );
-				document.addEventListener( 'keyup', function(e){ game.keysDown[e.keyCode] = false; } );
+				document.addEventListener( 'keydown', function(e){ game.onKeyDown(e); } );
+				document.addEventListener( 'keyup', function(e){ game.onKeyUp(e); } );
 		}
 
 		{ // SET UP SCENE
@@ -254,15 +254,6 @@ var main=function()
 		}
 
   { // Set up animation
-				platformNode.animationCallback = function(deltaTime){
-						if(game.keysDown[37]){
-								game.platform.position[0] -= game.platformSpeed;
-						}
-						if(game.keysDown[39]){
-								game.platform.position[0] += game.platformSpeed;
-						}
-				}
-
 				/*lightNode_point.animationCallback = function(deltaTime){
 						lightNode_point.nodeObject.position = [5,0,0];
 				}*/
@@ -283,11 +274,37 @@ var main=function()
 
   scene.setViewFrustum(1, 100, 0.5236);
 
+		
   var animate=function() 
   {
-				console.log(CollisionRectCirc(game.walls[1], game.ball));
-				//console.log(CollisionRectCirc(game.walls[1], game.ball));
-				//console.log(CollisionRectCirc());
+				{ // GAME UPDATE
+						{ // PLATFORM MOVEMENT
+								if(game.keysDown[37]){
+										if(game.platform.position[0] - (game.platform.width*game.platformWidthMultiplier)/2 > - (game.wallWidth/2 - 0.6)){
+												game.platform.position[0] -= game.platformSpeed;
+												if(game.ballIsStuck) {
+														game.ball.position[0] -= game.platformSpeed;
+												}
+										}
+								}
+								if(game.keysDown[39]){
+										if(game.platform.position[0] + (game.platform.width*game.platformWidthMultiplier)/2 < (game.wallWidth/2 - 0.6)){
+												game.platform.position[0] += game.platformSpeed;
+												if(game.ballIsStuck) {
+														game.ball.position[0] += game.platformSpeed;
+												}
+										}
+								}
+						}
+						{ // LAUNCHING BALL
+								if(game.keysDown[32]){
+										game.ballLaunchVelocity += game.ballAccellerationPerFrame;
+								}
+						}
+
+						move(game.ball);
+				}
+
 				{ // PLATFORM MOVEMENT
 						Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
@@ -334,8 +351,6 @@ var main=function()
 				Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
     Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
     scene.lookAt(observer, [0,0,0], [0,10,0]);
-
-				game.update();
 
     scene.beginFrame();
     scene.animate();

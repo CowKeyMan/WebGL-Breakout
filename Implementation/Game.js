@@ -6,11 +6,12 @@ function Game(){
 		this.brickColumns = 9;
 
 		this.platformScale = 3;
-		this.ballScale = 0.5;
 
 		this.keysDown = new Array(512).fill(false); // Used as a hash table. If keycode is down, index equivalent to that keycode is true
 
 		this.platformSpeed = 0.1;
+
+		this.platformWidthMultiplier = 1;
 
 		this.minCameraSpeed = 0.01;
 		this.maxCameraSpeed = 0.1;
@@ -20,10 +21,15 @@ function Game(){
 		this.cameraAngle=0;
 
 		// Game objects stuff
-		this.ballAccellerationPerSecond = 0.1; // when holding spacebar
-		this.maxBallVelocity = 0.7;
+		this.ballScale = 0.5;
+		this.ballAccellerationPerFrame = 0.1/60; // when holding spacebar
+		this.ballLaunchVelocity = 0.1;
+		this.maxBallVelocity = 0.3;
+		this.maxBallVelocityMultiplier = 1;
+		this.ballIsStuck = true;
 
 		this.ball = new CircObject();
+
 		this.platform = new RectObject();
 		this.bricks = []; // Array of RectObject
 		this.walls = [
@@ -32,7 +38,21 @@ function Game(){
 				new RectObject(),
 				];
 
-		this.update = function(){
-				move(this.ball);
+		this.onKeyDown = function(e){ 
+				this.keysDown[e.keyCode] = true; 
+
+				if(e.keyCode == 32){ // SPACEBR
+						console.log('hi');
+						ballLaunchVelocity = 0.1;
+				}
+		}
+		this.onKeyUp = function(e){
+				this.keysDown[e.keyCode] = false;
+				if(e.keyCode == 32 && this.ballIsStuck){
+						this.ballIsStuck = false;
+						this.prepForLaunch = false;
+						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
+						this.ball.velocity = [0, this.ballLaunchVelocity];
+				}
 		}
 }
