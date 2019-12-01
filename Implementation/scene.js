@@ -55,7 +55,7 @@ Node.prototype.draw = function(scene, parentTransform)
 			}
 		}
 
-		childNode.draw(scene, compositeTransform);
+		if(childNode != null) {childNode.draw(scene, compositeTransform); }
 	});
 }
 
@@ -65,7 +65,7 @@ Node.prototype.animate = function(deltaTime)
 		this.animationCallback(deltaTime);
 
 	this.children.forEach(function(childNode) {
-		childNode.animate(deltaTime);
+		if(childNode != null) { childNode.animate(deltaTime); }
 	});
 }
 
@@ -261,6 +261,24 @@ Scene.prototype.addNode = function(parent, nodeObject, nodeName, nodeType)
 	parent.children[parent.children.length] = node;
 
 	return node;
+}
+
+Scene.prototype.removeNode = function(nodeName){
+		var queue = [this.root];
+
+		while(queue.length != 0) {
+				var node = queue.pop();
+				for(var i = 0; i < node.children.length; ++i){
+						if(node.children[i] !== null){
+								if(node.children[i].name.localeCompare(nodeName) == 0){
+										node.children[i] = null;
+										return;
+								} else{
+										queue.push(node.children[i]);
+								}
+						}
+		  }
+	 }
 }
 
 //--------------------------------------------------------------------------------------------------------//

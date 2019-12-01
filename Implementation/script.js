@@ -314,19 +314,24 @@ var main=function()
 						{ // COLLISION WITH BRICKS
 								for(var r = 0; r < game.brickRows; ++r){
 										for(var c = 0; c < game.brickColumns; ++c){
-
-												var collided = false;
-												if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP){
-														game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
-														collided = true;
-												} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
-														game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
-														collided = true;
-												} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT | CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){
-														game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
-														collided = true;
+												if(game.bricks[r][c] !== null){
+														var collided = false;
+														if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP){
+																game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+																collided = true;
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
+																game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
+																collided = true;
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT | CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){
+																game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+																collided = true;
+														}
+														
+														if(collided){
+																scene.removeNode("brickNode".concat(r,c));
+																game.bricks[r][c] = null;
+														}
 												}
-
 										}
 								}
 						}
