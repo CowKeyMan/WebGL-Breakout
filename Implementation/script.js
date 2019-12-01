@@ -128,22 +128,39 @@ var main=function()
   var light_directional = new Light();
   light_directional.type = Light.LIGHT_TYPE.DIRECTIONAL;
   light_directional.setDiffuse([2, 2, 2]);
-  light_directional.setSpecular([1, 1, 1]);
+  light_directional.setSpecular([5, 5, 5]);
   light_directional.setAmbient([0.1, 0.1, 0.1]);
-  light_directional.setPosition([0, 0, 2.5]);
   light_directional.setDirection([0, 0, -1]);
-  light_directional.setCone(0.7, 0.6);
-  light_directional.attenuation = Light.ATTENUATION_TYPE.NONE;
   light_directional.bind(gl, scene.shaderProgram, 0);
 
 		var light_point = new Light();
   light_point.type = Light.LIGHT_TYPE.POINT;
   light_point.setDiffuse([5, 5, 5]);
-  light_point.setSpecular([1, 1, 1]);
-  light_point.setAmbient([5, 5, 5]);
-  light_point.setPosition([0, 5, 0]);
+  light_directional.setSpecular([8, 8, 8]);
+  light_point.setAmbient([.3, .3, .3]);
   light_point.attenuation = Light.ATTENUATION_TYPE.QUAD;
   light_point.bind(gl, scene.shaderProgram, 1);
+
+		var light_spot_left = new Light();
+  light_spot_left.type = Light.LIGHT_TYPE.SPOT;
+  light_spot_left.setDiffuse([7, 7, 7]);
+  light_spot_left.setSpecular([8, 8, 8]);
+  light_spot_left.setAmbient([0.5, 0.5, 0.5]);
+  light_spot_left.setDirection([0, 1, 0]);
+  light_spot_left.setCone(1, 0.99);
+  light_spot_left.attenuation = Light.ATTENUATION_TYPE.NONE;
+  light_spot_left.bind(gl, scene.shaderProgram, 2);
+
+		var light_spot_right = new Light();
+  light_spot_right.type = Light.LIGHT_TYPE.SPOT;
+  light_spot_right.setDiffuse([7, 7, 7]);
+  light_spot_right.setSpecular([1, 1, 1]);
+  light_spot_right.setAmbient([0.5, 0.5, 0.5]);
+  light_spot_right.setDirection([0, 1, 0]);
+  light_spot_right.setCone(1, 0.99);
+  light_spot_right.attenuation = Light.ATTENUATION_TYPE.NONE;
+  light_spot_right.bind(gl, scene.shaderProgram, 3);
+
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up textures and materials
@@ -208,10 +225,10 @@ var main=function()
 		{ // SET UP SCENE GRAPH
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
 
-				//var lightNode_point = scene.addNode(scene.root, light_point, "lightNode_directional", Node.NODE_TYPE.LIGHT);
-				//var lightNode_directional = scene.addNode(scene.root, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
-				var lightNode_directional2 = scene.addNode(scene.root, light_point, "lightNode_directional", Node.NODE_TYPE.LIGHT);
-				var lightNode_directional = scene.addNode(lightNode_directional2, light_directional , "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				var lightNode_point = scene.addNode(scene.root, light_point, "lightNode_point", Node.NODE_TYPE.LIGHT);
+				var lightNode_spot_left = scene.addNode(lightNode_point, light_spot_left, "lightNode_spot_left", Node.NODE_TYPE.LIGHT);
+				var lightNode_spot_right = scene.addNode(lightNode_spot_left, light_spot_right, "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				var lightNode_directional = scene.addNode(lightNode_spot_right, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
 				{ // ADD WALLS
 						var wallLeftNode = scene.addNode(lightNode_directional, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
@@ -253,12 +270,6 @@ var main=function()
 						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
-		}
-
-  { // Set up animation
-				/*lightNode_point.animationCallback = function(deltaTime){
-						lightNode_point.nodeObject.position = [5,0,0];
-				}*/
 		}
 
   var lightTransform = Mat4x4.create();
@@ -324,8 +335,17 @@ var main=function()
 														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
 																game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
 																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT | CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){
-																game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT){
+																game.ball.velocity = [-Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																collided = true;
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT){
+																game.ball.velocity = [Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																collided = true;
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){ 
+																game.ball.velocity = [-Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
+																collided = true;
+														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT){
+																game.ball.velocity = [Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
 																collided = true;
 														}
 														
@@ -392,6 +412,11 @@ var main=function()
 						}
 				}
 
+				{ //LIGHT MOVEMENT
+						lightNode_point.nodeObject.position = [game.ball.position[0], game.ball.position[1], 0];
+						lightNode_spot_left.nodeObject.position = [game.platform.position[0] - game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
+						lightNode_spot_right.nodeObject.position = [game.platform.position[0] + game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
+				}
     //Mat4x4.makeTranslation(sphereNode2.transform, [10,0,0]);
 				Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
     Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
