@@ -39,15 +39,23 @@ function Game(){
 		this.platform = new RectObject();
 		this.ball = new CircObject();
 
+		this.firstTime = true;
 		this.keysDown = new Array(512).fill(false); // Used as a hash list. If keycode is down, index equivalent to that keycode is true
 
 		this.onKeyDown = function(e){ 
 				this.keysDown[e.keyCode] = true; 
+
+				if(this.firstTime){
+						this.firstTime = false;
+						document.getElementById("theme").play();
+				}
 		}
 
 		this.onKeyUp = function(e){
 				this.keysDown[e.keyCode] = false;
 				if(e.keyCode == 32 && this.ballIsStuck){
+						document.getElementById("ChargeUp").pause();
+						document.getElementById("ChargeUp").currentTime = 0;
 						this.ballIsStuck = false;
 						this.prepForLaunch = false;
 						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;

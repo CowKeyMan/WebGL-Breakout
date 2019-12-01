@@ -308,8 +308,8 @@ var main=function()
 						}
 						{ // LAUNCHING BALL
 								if(game.keysDown[32]){ // SPACEBAR
+										document.getElementById("ChargeUp").play();
 										game.ballLaunchVelocity += game.ballAccellerationPerFrame;
-										console.log(game.ballLaunchVelocity);
 								}
 						}
 
@@ -319,6 +319,7 @@ var main=function()
 								if(CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_RIGHT){
 										game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]]; // TODO: CHANGE THIS
 										changeVelocityFromPoint(game.ball.velocity, [game.platform.position[0], game.platform.position[1] - 2], game.ball.position, game.ballVelocity);
+										document.getElementById("PlatformHit").play();
 								}
 						}
 
@@ -351,8 +352,13 @@ var main=function()
 																scene.removeNode("brickNode".concat(r,c));
 																game.bricks[r][c] = null;
 																game.points += 1;
+																document.getElementById("BrickHit").play();
 																if(game.points >= game.brickRows * game.brickColumns){
-																		window.location.reload(true);
+																		document.getElementById("theme").pause();
+																		document.getElementById("theme").currentTime = 0;
+																		document.getElementById("VictoryFanfare").play();
+																		game.ball.velocity = [0,0];
+																		setTimeout("location.href = 'index.html'",5 * 1000);
 																}
 														}
 												}
@@ -364,21 +370,28 @@ var main=function()
 								for(var i = 0; i < game.walls.length; ++i){
 										if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.TOP){
 												game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+												document.getElementById("WallHit").play();
 										} else if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.RIGHT){
 												game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
+												document.getElementById("WallHit").play();
 										}
 								}
 						}
 
 						// if ball falls in pit
 						if(game.ball.position[1] < game.deathLevel){
-								game.ball.position = [game.platform.position[0] ,-game.wallHeight/2 + 0.5 + game.ballScale];
-								game.ball.velocity = [0,0];
-								game.ballIsStuck = true;
 								game.lives -= 1;
-
 								if(game.lives <= 0){
-										window.location.reload(true);
+										document.getElementById("theme").pause();
+										document.getElementById("theme").currentTime = 0;
+										document.getElementById("Lose").play();
+										setTimeout("location.href = 'index.html'",3 * 1000);
+										game.ball.position = [100,100]
+								}else{
+										game.ball.position = [game.platform.position[0] ,-game.wallHeight/2 + 0.5 + game.ballScale];
+										game.ball.velocity = [0,0];
+										game.ballIsStuck = true;
+										document.getElementById("ErrorBleep").play();
 								}
 						}
 				}
@@ -396,7 +409,7 @@ var main=function()
 
 				{ // CAMERA MOVEMENT
 						if(game.keysDown[81]){       // pressing Q
-								game.cameraAngle = -game.cameraGrazingAngle; // grazing
+								game.cameraAngle = game.cameraGrazingAngle; // grazing
 						}else if(game.keysDown[69]){ // pressing E
 								game.cameraAngle = 0;  // top view
 						}else if(game.keysDown[87]){ // Pressing W
