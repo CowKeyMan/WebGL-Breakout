@@ -34,7 +34,7 @@ var main=function()
 				scene.initialise(gl, canvas);
 		}
 
-		{ // SET UP PRIMITIVES
+		{ // SET UP GEOMETRY PRIMITIVES
 				var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
 				var quad = makeCuboid([0,0,0], 1, 1, 1);
 		}
@@ -87,6 +87,37 @@ var main=function()
 								}
 						}
 				}
+		}
+
+		{// SET UP PHYSICS ITEMS
+				for(var r = 0; r < game.brickRows; ++r){
+						game.bricks.push([]);
+						for(var c = 0; c < game.brickColumns; ++c){
+								game.bricks[r].push( new RectObject() );
+								game.bricks[r][c].position = [c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r]
+								game.bricks[r][c].width = ((game.wallWidth-1)/(game.brickColumns)) * 0.9;
+								game.bricks[r][c].height = 0.9 * 3.0 / game.brickRows;
+						}
+				}
+
+				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
+				game.ball.radius = game.ballScale;
+
+				game.platform.position = [0,-game.wallHeight/2 + 0.25];
+				game.platform.width = game.platformScale;
+				game.platform.height = 0.5;
+
+				game.walls[0].position = [-game.wallWidth/2,0]
+				game.walls[0].width = 1;
+				game.walls[0].height = game.wallHeight;
+
+				game.walls[1].position = [game.wallWidth/2,0]
+				game.walls[1].width = 1
+				game.walls[1].height = game.wallHeight;
+
+				game.walls[2].position = [0,game.wallHeight/2+0.5]
+				game.walls[2].width = game.wallWidth + 1;
+				game.walls[2].height = 1;
 		}
 
   //--------------------------------------------------------------------------------------------------------//
@@ -216,7 +247,7 @@ var main=function()
 				}
 				{ // ADD BALL
 					 var ballNode = scene.addNode(lightNode_directional, ball, "ballNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(ballNode.transform, [0,-game.wallHeight/2 + 0.5 + game.ballScale,0]);
+						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
 						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
@@ -225,10 +256,10 @@ var main=function()
   { // Set up animation
 				platformNode.animationCallback = function(deltaTime){
 						if(game.keysDown[37]){
-								game.platformPositionX -= game.platformSpeed;
+								game.platform.position[0] -= game.platformSpeed;
 						}
 						if(game.keysDown[39]){
-								game.platformPositionX += game.platformSpeed;
+								game.platform.position[0] += game.platformSpeed;
 						}
 				}
 
@@ -254,15 +285,23 @@ var main=function()
 
   var animate=function() 
   {
+				console.log(CollisionRectCirc(game.walls[1], game.ball));
+				//console.log(CollisionRectCirc(game.walls[1], game.ball));
+				//console.log(CollisionRectCirc());
 				{ // PLATFORM MOVEMENT
-						Mat4x4.makeTranslation(platformNode.transform, [game.platformPositionX,-game.wallHeight/2 + 0.25,0]);
+						Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
 						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
+				}
+				{// BALL MOVEMENT
+						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
+						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
+						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
 
 				{ // CAMERA MOVEMENT
 						if(game.keysDown[81]){       // pressing Q
-								game.cameraAngle = game.cameraGrazingAngle; // grazing
+								game.cameraAngle = -game.cameraGrazingAngle; // grazing
 						}else if(game.keysDown[69]){ // pressing E
 								game.cameraAngle = 0;  // top view
 						}else if(game.keysDown[87]){ // Pressing W
@@ -295,6 +334,8 @@ var main=function()
 				Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
     Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
     scene.lookAt(observer, [0,0,0], [0,10,0]);
+
+				game.update();
 
     scene.beginFrame();
     scene.animate();

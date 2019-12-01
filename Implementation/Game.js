@@ -8,10 +8,6 @@ function Game(){
 		this.platformScale = 3;
 		this.ballScale = 0.5;
 
-		this.platformPositionX = 0;
-
-		this.ballPosition = [0,0 - this.ballScale];
-
 		this.keysDown = new Array(512).fill(false); // Used as a hash table. If keycode is down, index equivalent to that keycode is true
 
 		this.platformSpeed = 0.1;
@@ -22,4 +18,21 @@ function Game(){
 		this.cameraAcceleration = 0.01;
 		this.cameraGrazingAngle = Math.PI/2 * 2/3;
 		this.cameraAngle=0;
+
+		// Game objects stuff
+		this.ballAccellerationPerSecond = 0.1; // when holding spacebar
+		this.maxBallVelocity = 0.7;
+
+		this.ball = new CircObject();
+		this.platform = new RectObject();
+		this.bricks = []; // Array of RectObject
+		this.walls = [
+				new RectObject(),
+				new RectObject(),
+				new RectObject(),
+				];
+
+		this.update = function(){
+				move(this.ball);
+		}
 }
