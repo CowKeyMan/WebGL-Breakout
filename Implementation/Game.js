@@ -26,6 +26,7 @@ function Game(){
 		this.ballLaunchVelocity = 0.1;
 		this.maxBallVelocity = 0.3;
 		this.maxBallVelocityMultiplier = 1;
+		this.ballVelocity = 0.1
 		this.ballIsStuck = true;
 
 		this.ball = new CircObject();
@@ -42,7 +43,6 @@ function Game(){
 				this.keysDown[e.keyCode] = true; 
 
 				if(e.keyCode == 32){ // SPACEBR
-						console.log('hi');
 						ballLaunchVelocity = 0.1;
 				}
 		}
@@ -52,6 +52,7 @@ function Game(){
 						this.ballIsStuck = false;
 						this.prepForLaunch = false;
 						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
+						this.ballVelocity = this.ballLaunchVelocity;
 						this.ball.velocity = [0, this.ballLaunchVelocity];
 				}
 		}

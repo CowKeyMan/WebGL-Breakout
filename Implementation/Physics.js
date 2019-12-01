@@ -20,6 +20,7 @@ function CollisionRectCirc(r, c){
 		var rect_height = r.height, rect_width = r.width;
 		var circ_center_X = c.position[0], circ_center_Y = c.position[1];
 		var circ_radius = c.radius;
+
 		if(euclidean_distance(rect_center_X - rect_width/2, rect_center_Y - rect_height/2, circ_center_X, circ_center_Y) < circ_radius){
 				return COLLISION_TYPE.BOTTOM_LEFT;
 		} else if(euclidean_distance(rect_center_X + rect_width/2, rect_center_Y - rect_height/2, circ_center_X, circ_center_Y) < circ_radius){
@@ -43,6 +44,7 @@ function CollisionRectCirc(r, c){
 						return COLLISION_TYPE.BOTTOM;
 				}
 		}
+		
 		return COLLISION_TYPE.NONE;
 }
 
@@ -70,15 +72,22 @@ COLLISION_TYPE = {
 		BOTTOM_RIGHT: 8
 }
 
-function getDirection(origin, destination){
+function getDirectionVector(res, origin, destination){
 		var magnitude = euclidean_distance(origin[0], origin[1], destination[0], destination[1]);
 
-		return [ (destination[0] - origin[0])/magnitude, (destination[1] - origin[1])/magnitude ];
+		res[0] = (destination[0] - origin[0])/magnitude
+		res[1] = (destination[1] - origin[1])/magnitude;
 }
 
 function multiply(out, a, s){
 		out[0] = a[0] * s;
 		out[1] = a[1] * s;
+}
+
+function changeVelocityFromPoint(velocity, origin, destination, magnitude){
+		getDirectionVector(velocity, origin, destination);
+
+		multiply(velocity, velocity, magnitude);
 }
 
 function move(o){
