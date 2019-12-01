@@ -140,10 +140,10 @@ var main=function()
   light_point.type = Light.LIGHT_TYPE.POINT;
   light_point.setDiffuse([5, 5, 5]);
   light_point.setSpecular([1, 1, 1]);
-  light_point.setAmbient([1, 1, 1]);
-  light_point.setPosition([0, 0, 0]);
+  light_point.setAmbient([5, 5, 5]);
+  light_point.setPosition([0, 5, 0]);
   light_point.attenuation = Light.ATTENUATION_TYPE.QUAD;
-  light_point.bind(gl, scene.shaderProgram, 0);
+  light_point.bind(gl, scene.shaderProgram, 1);
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up textures and materials
@@ -209,7 +209,9 @@ var main=function()
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
 
 				//var lightNode_point = scene.addNode(scene.root, light_point, "lightNode_directional", Node.NODE_TYPE.LIGHT);
-				var lightNode_directional = scene.addNode(scene.root, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				//var lightNode_directional = scene.addNode(scene.root, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				var lightNode_directional2 = scene.addNode(scene.root, light_point, "lightNode_directional", Node.NODE_TYPE.LIGHT);
+				var lightNode_directional = scene.addNode(lightNode_directional2, light_directional , "lightNode_directional", Node.NODE_TYPE.LIGHT);
 				{ // ADD WALLS
 						var wallLeftNode = scene.addNode(lightNode_directional, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
