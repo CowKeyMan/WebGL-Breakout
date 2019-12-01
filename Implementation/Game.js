@@ -1,16 +1,16 @@
 function Game(){
+		this.lives = 3;
+		this.deathLevel = -7; // position y of ball to be dead
+		this.points = 0;
+
 		this.wallWidth = 16;
 		this.wallHeight = 10;
 
 		this.brickRows = 5;
 		this.brickColumns = 9;
 
-		this.platformScale = 3;
-
-		this.keysDown = new Array(512).fill(false); // Used as a hash table. If keycode is down, index equivalent to that keycode is true
-
 		this.platformSpeed = 0.1;
-
+		this.platformScale = 3;
 		this.platformWidthMultiplier = 1;
 
 		this.minCameraSpeed = 0.01;
@@ -29,23 +29,22 @@ function Game(){
 		this.ballVelocity = 0.1
 		this.ballIsStuck = true;
 
-		this.ball = new CircObject();
-
-		this.platform = new RectObject();
-		this.bricks = []; // Array of RectObject
+		// Physics Objects
 		this.walls = [
 				new RectObject(),
 				new RectObject(),
 				new RectObject(),
-				];
+		];
+		this.bricks = []; // Array of RectObject
+		this.platform = new RectObject();
+		this.ball = new CircObject();
+
+		this.keysDown = new Array(512).fill(false); // Used as a hash list. If keycode is down, index equivalent to that keycode is true
 
 		this.onKeyDown = function(e){ 
 				this.keysDown[e.keyCode] = true; 
-
-				if(e.keyCode == 32){ // SPACEBR
-						ballLaunchVelocity = 0.1;
-				}
 		}
+
 		this.onKeyUp = function(e){
 				this.keysDown[e.keyCode] = false;
 				if(e.keyCode == 32 && this.ballIsStuck){
@@ -54,6 +53,7 @@ function Game(){
 						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
 						this.ballVelocity = this.ballLaunchVelocity;
 						this.ball.velocity = [0, this.ballLaunchVelocity];
+						this.ballLaunchVelocity = 0.1;
 				}
 		}
 }

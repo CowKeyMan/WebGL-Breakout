@@ -121,46 +121,43 @@ var main=function()
 		}
 
   //--------------------------------------------------------------------------------------------------------//
-  // Set up lights
-  //--------------------------------------------------------------------------------------------------------//
-  //light.type = Light.LIGHT_TYPE.SPOT;
-  //light.type = Light.LIGHT_TYPE.POINT;
-  var light_directional = new Light();
-  light_directional.type = Light.LIGHT_TYPE.DIRECTIONAL;
-  light_directional.setDiffuse([2, 2, 2]);
-  light_directional.setSpecular([5, 5, 5]);
-  light_directional.setAmbient([0.1, 0.1, 0.1]);
-  light_directional.setDirection([0, 0, -1]);
-  light_directional.bind(gl, scene.shaderProgram, 0);
+  { // Set up lights
+				var light_directional = new Light();
+				light_directional.type = Light.LIGHT_TYPE.DIRECTIONAL;
+				light_directional.setDiffuse([2, 2, 2]);
+				light_directional.setSpecular([5, 5, 5]);
+				light_directional.setAmbient([0.1, 0.1, 0.1]);
+				light_directional.setDirection([0, 0, -1]);
+				light_directional.bind(gl, scene.shaderProgram, 0);
 
-		var light_point = new Light();
-  light_point.type = Light.LIGHT_TYPE.POINT;
-  light_point.setDiffuse([5, 5, 5]);
-  light_directional.setSpecular([8, 8, 8]);
-  light_point.setAmbient([.3, .3, .3]);
-  light_point.attenuation = Light.ATTENUATION_TYPE.QUAD;
-  light_point.bind(gl, scene.shaderProgram, 1);
+				var light_point = new Light();
+				light_point.type = Light.LIGHT_TYPE.POINT;
+				light_point.setDiffuse([5, 5, 5]);
+				light_directional.setSpecular([8, 8, 8]);
+				light_point.setAmbient([.3, .3, .3]);
+				light_point.attenuation = Light.ATTENUATION_TYPE.QUAD;
+				light_point.bind(gl, scene.shaderProgram, 1);
 
-		var light_spot_left = new Light();
-  light_spot_left.type = Light.LIGHT_TYPE.SPOT;
-  light_spot_left.setDiffuse([7, 7, 7]);
-  light_spot_left.setSpecular([8, 8, 8]);
-  light_spot_left.setAmbient([0.5, 0.5, 0.5]);
-  light_spot_left.setDirection([0, 1, 0]);
-  light_spot_left.setCone(1, 0.99);
-  light_spot_left.attenuation = Light.ATTENUATION_TYPE.NONE;
-  light_spot_left.bind(gl, scene.shaderProgram, 2);
+				var light_spot_left = new Light();
+				light_spot_left.type = Light.LIGHT_TYPE.SPOT;
+				light_spot_left.setDiffuse([7, 7, 7]);
+				light_spot_left.setSpecular([8, 8, 8]);
+				light_spot_left.setAmbient([0.5, 0.5, 0.5]);
+				light_spot_left.setDirection([0, 1, 0]);
+				light_spot_left.setCone(1, 0.99);
+				light_spot_left.attenuation = Light.ATTENUATION_TYPE.NONE;
+				light_spot_left.bind(gl, scene.shaderProgram, 2);
 
-		var light_spot_right = new Light();
-  light_spot_right.type = Light.LIGHT_TYPE.SPOT;
-  light_spot_right.setDiffuse([7, 7, 7]);
-  light_spot_right.setSpecular([1, 1, 1]);
-  light_spot_right.setAmbient([0.5, 0.5, 0.5]);
-  light_spot_right.setDirection([0, 1, 0]);
-  light_spot_right.setCone(1, 0.99);
-  light_spot_right.attenuation = Light.ATTENUATION_TYPE.NONE;
-  light_spot_right.bind(gl, scene.shaderProgram, 3);
-
+				var light_spot_right = new Light();
+				light_spot_right.type = Light.LIGHT_TYPE.SPOT;
+				light_spot_right.setDiffuse([7, 7, 7]);
+				light_spot_right.setSpecular([1, 1, 1]);
+				light_spot_right.setAmbient([0.5, 0.5, 0.5]);
+				light_spot_right.setDirection([0, 1, 0]);
+				light_spot_right.setCone(1, 0.99);
+				light_spot_right.attenuation = Light.ATTENUATION_TYPE.NONE;
+				light_spot_right.bind(gl, scene.shaderProgram, 3);
+		}
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up textures and materials
@@ -292,7 +289,7 @@ var main=function()
   {
 				{ // GAME UPDATE
 						{ // PLATFORM MOVEMENT
-								if(game.keysDown[37]){
+								if(game.keysDown[37]){ // LEFT ARROW
 										if(game.platform.position[0] - (game.platform.width*game.platformWidthMultiplier)/2 > - (game.wallWidth/2 - 0.6)){
 												game.platform.position[0] -= game.platformSpeed;
 												if(game.ballIsStuck) {
@@ -300,7 +297,7 @@ var main=function()
 												}
 										}
 								}
-								if(game.keysDown[39]){
+								if(game.keysDown[39]){ // RIGHT ARROW
 										if(game.platform.position[0] + (game.platform.width*game.platformWidthMultiplier)/2 < (game.wallWidth/2 - 0.6)){
 												game.platform.position[0] += game.platformSpeed;
 												if(game.ballIsStuck) {
@@ -310,8 +307,9 @@ var main=function()
 								}
 						}
 						{ // LAUNCHING BALL
-								if(game.keysDown[32]){
+								if(game.keysDown[32]){ // SPACEBAR
 										game.ballLaunchVelocity += game.ballAccellerationPerFrame;
+										console.log(game.ballLaunchVelocity);
 								}
 						}
 
@@ -352,6 +350,10 @@ var main=function()
 														if(collided){
 																scene.removeNode("brickNode".concat(r,c));
 																game.bricks[r][c] = null;
+																game.points += 1;
+																if(game.points >= game.brickRows * game.brickColumns){
+																		window.location.reload(true);
+																}
 														}
 												}
 										}
@@ -368,6 +370,17 @@ var main=function()
 								}
 						}
 
+						// if ball falls in pit
+						if(game.ball.position[1] < game.deathLevel){
+								game.ball.position = [game.platform.position[0] ,-game.wallHeight/2 + 0.5 + game.ballScale];
+								game.ball.velocity = [0,0];
+								game.ballIsStuck = true;
+								game.lives -= 1;
+
+								if(game.lives <= 0){
+										window.location.reload(true);
+								}
+						}
 				}
 
 				{ // PLATFORM MOVEMENT
