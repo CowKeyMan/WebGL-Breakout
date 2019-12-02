@@ -42,8 +42,12 @@ function Game(){
 
 				this.maxStuckAmount = 2;
 				this.stuckAmount = 0;
+
+				this.maxBulletAmount = 3;
+				this.bulletAmount = 0;
+				this.canShoot = true;
+				this.bulletVelocity = 0.4;
 		}
-		this.powerupPoolAmount = 10;
 
 		// Physics Objects
 		this.walls = [
@@ -55,9 +59,15 @@ function Game(){
 		this.platform = new RectObject();
 		this.ball = new CircObject();
 
+		this.powerupPoolAmount = 10;
 		this.powerups = []
 		this.powerupPool = new ObjectPool();
 		this.powerupPool.pool = this.powerups;
+
+		this.bulletPoolAmount = 10;
+		this.bullets = [];
+		this.bulletPool = new ObjectPool();
+		this.bulletPool.pool = this.bullets;
 
 		this.canPlayChargeSound = true;
 
@@ -76,6 +86,15 @@ function Game(){
 						document.getElementById("ChargeUp").play();
 						this.canPlayChargeSound = false;
 				}
+
+				if(e.keyCode == 38 && this.canShoot && this.bulletAmount > 0){
+					 console.log(this.bulletAmount);
+						this.bulletAmount--;
+						this.canShoot = false;
+						var b = this.bulletPool.getNext();
+						b.position = [this.platform.position[0], this.platform.position[1]];
+						b.velocity = [0, this.bulletVelocity];
+				}
 		}
 
 		this.onKeyUp = function(e){
@@ -91,6 +110,11 @@ function Game(){
 						this.ballVelocity = this.ballLaunchVelocity;
 						changeVelocityFromPoint(this.ball.velocity, [this.platform.position[0], this.platform.position[1] - 2], this.ball.position, this.ballVelocity);
 						this.ballLaunchVelocity = 0.1;
+				}
+
+
+				if(e.keyCode == 38){
+						this.canShoot = true;
 				}
 		}
 }

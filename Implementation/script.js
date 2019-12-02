@@ -41,23 +41,11 @@ var main=function()
 
 		{ // SET UP GEOMETRY
 				{ // WALLS
-						var wallLeft = new Model();
-						wallLeft.name = "wallLeft";
-						wallLeft.index = quad.index;
-						wallLeft.vertex = quad.vertex;
-						wallLeft.compile(scene);
-				
-						var wallRight = new Model();
-						wallRight.name = "wallRight";
-						wallRight.index = quad.index;
-						wallRight.vertex = quad.vertex;
-						wallRight.compile(scene);
-
-						var wallTop = new Model();
-						wallTop.name = "wallTop";
-						wallTop.index = quad.index;
-						wallTop.vertex = quad.vertex;
-						wallTop.compile(scene);
+						var wall = new Model();
+						wall.name = "wall";
+						wall.index = quad.index;
+						wall.vertex = quad.vertex;
+						wall.compile(scene);
 				}
 				{ // PLATFORM
 						var platform = new Model();
@@ -74,29 +62,25 @@ var main=function()
 						ball.compile(scene);
 				}
 				{ // ADD BRICKS
-						var bricks = [];
-						for(var r = 0; r < game.brickRows; ++r){
-								bricks.push([]);
-								for(var c = 0; c < game.brickColumns; ++c){
-										var brick = new Model();
-										brick.name = "brick".concat(r, c);
-										brick.index = quad.index;
-										brick.vertex = quad.vertex;
-										brick.compile(scene);
-										bricks[r].push(brick);
-								}
-						}
+						var brick = new Model();
+						brick.name = "brick";
+						brick.index = quad.index;
+						brick.vertex = quad.vertex;
+						brick.compile(scene);
 				}
 				{ // ADD POWERUPS
-						var powerups = []
-						for(var i = 0; i < game.powerupPoolAmount; ++i){
-								var pow = new Model();
-								pow.name = "powerup".concat(i);
-								pow.index = sphere.index;
-								pow.vertex = sphere.vertex;
-								pow.compile(scene);
-								powerups.push(pow);
-						}
+						var powerup = new Model();
+						powerup.name = "powerup";
+						powerup.index = sphere.index;
+						powerup.vertex = sphere.vertex;
+						powerup.compile(scene);
+				}
+				{ // ADD BULLETS
+						var bullet = new Model();
+						bullet.name = "bullet";
+						bullet.index = sphere.index;
+						bullet.vertex = sphere.vertex;
+						bullet.compile(scene);
 				}
 		}
 
@@ -115,6 +99,12 @@ var main=function()
 						game.powerups.push(new CircObject());
 						game.powerups[i].position = [100, 100];
 						game.powerups[i].radius = 0.3;
+				}
+
+				for(var i = 0; i < game.bulletPoolAmount; ++i){
+						game.bullets.push(new CircObject());
+						game.bullets[i].position = [100, 100];
+						game.bullets[i].radius = 0.1;
 				}
 
 				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
@@ -228,24 +218,29 @@ var main=function()
 						material_gold.setDiffuse([1,1,1]);
 						material_gold.bind(gl, scene.shaderProgram);
 				}
+				{ // BULLETS
+						var material_oil = new Material();
+						material_oil.setAlbedo(gl, textureList.oil);
+						material_oil.setShininess(300);
+						material_oil.setSpecular([1,1,1]);
+						material_oil.setAmbient([1,1,1]);
+						material_oil.setDiffuse([1,1,1]);
+						material_oil.bind(gl, scene.shaderProgram);
+				}
 		}
 
 		{ // GIVE MATERIALS TO OBJECTS
-				wallLeft.material = wallRight.material = wallTop.material = material_diffuse_wall;
+				wall.material = material_diffuse_wall;
 
 				platform.material = material_diffuse_platform;
 
 				ball.material = material_shiny;
 
-				for(var r = 0; r < game.brickRows; ++r){
-						for(var c = 0; c < game.brickColumns; ++c){
-								bricks[r][c].material = material_diffuse_brick;
-						}
-				}
+				brick.material = material_diffuse_brick;
 
-				for(var i = 0; i < game.powerups.length; ++i){
-						powerups[i].material = material_gold;
-				}
+				powerup.material = material_gold;
+
+				bullet.material = material_oil;
 		}
 
 		{ // SET UP SCENE GRAPH
@@ -256,17 +251,17 @@ var main=function()
 				var lightNode_spot_right = scene.addNode(lightNode_spot_left, light_spot_right, "lightNode_directional", Node.NODE_TYPE.LIGHT);
 				var lightNode_directional = scene.addNode(lightNode_spot_right, light_directional, "lightNode_directional", Node.NODE_TYPE.LIGHT);
 				{ // ADD WALLS
-						var wallLeftNode = scene.addNode(lightNode_directional, wallLeft, "wallLeftNode", Node.NODE_TYPE.MODEL);
+						var wallLeftNode = scene.addNode(lightNode_directional, wall, "wallLeftNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallLeftNode.transform, [-game.wallWidth/2,0,0]);
 						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallLeftNode.transform, wallLeftNode.transform, scalingMatrix);
 
-						var wallRightNode = scene.addNode(lightNode_directional, wallRight, "wallRightNode", Node.NODE_TYPE.MODEL);
+						var wallRightNode = scene.addNode(lightNode_directional, wall, "wallRightNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallRightNode.transform, [game.wallWidth/2,0,0]);
 						Mat4x4.makeScaling(scalingMatrix, [1,game.wallHeight,1]);
 						Mat4x4.multiply( wallRightNode.transform, wallRightNode.transform, scalingMatrix);
 
-						var wallTopNode = scene.addNode(lightNode_directional, wallTop, "wallTopNode", Node.NODE_TYPE.MODEL);
+						var wallTopNode = scene.addNode(lightNode_directional, wall, "wallTopNode", Node.NODE_TYPE.MODEL);
 						Mat4x4.makeTranslation(wallTopNode.transform, [0,game.wallHeight/2+0.5,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.wallWidth + 1,1,1]);
 						Mat4x4.multiply( wallTopNode.transform, wallTopNode.transform, scalingMatrix);
@@ -282,7 +277,7 @@ var main=function()
 						for(var r = 0; r < game.brickRows; ++r){
 								brickNodes.push([]);
 								for(var c = 0; c < game.brickColumns; ++c){
-									 var brickNode = scene.addNode(lightNode_directional, bricks[r][c], "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
+									 var brickNode = scene.addNode(lightNode_directional, brick, "brickNode".concat(r, c), Node.NODE_TYPE.MODEL);
 										Mat4x4.makeTranslation(brickNode.transform, [ c * ((game.wallWidth-1)/(game.brickColumns)) - game.wallWidth/2 + 0.5 + ((game.wallWidth)/(game.brickColumns))/2,4.5 - r,0]);
 										Mat4x4.makeScaling(scalingMatrix, [((game.wallWidth-1)/(game.brickColumns)) * 0.9, 0.9 * 3.0 / game.brickRows, 1]);
 										Mat4x4.multiply( brickNode.transform, brickNode.transform, scalingMatrix);
@@ -298,10 +293,19 @@ var main=function()
 				{ // ADD POWERUPS
 				  var powerupNodes = [];
 					 for(var i = 0; i < game.powerups.length; ++i){
-								var powerup = scene.addNode(lightNode_directional, powerups[i], "powerupNode".concat(i), Node.NODE_TYPE.MODEL);
+								var powerupNode = scene.addNode(lightNode_directional, powerup, "powerupNode".concat(i), Node.NODE_TYPE.MODEL);
 								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
-								Mat4x4.multiply( powerup.transform, powerup.transform, scalingMatrix);
-								powerupNodes.push(powerup);
+								Mat4x4.multiply( powerupNode.transform, powerupNode.transform, scalingMatrix);
+								powerupNodes.push(powerupNode);
+						}
+				}
+				{ // ADD BULLETS
+				  var bulletNodes = [];
+					 for(var i = 0; i < game.bullets.length; ++i){
+								var bulletNode = scene.addNode(lightNode_directional, bullet, "bulletNode".concat(i), Node.NODE_TYPE.MODEL);
+								Mat4x4.makeScalingUniform(scalingMatrix, game.bullets[i].radius);
+								Mat4x4.multiply( bulletNode.transform, bulletNode.transform, scalingMatrix);
+								bulletNodes.push(bulletNode);
 						}
 				}
 		}
@@ -353,6 +357,9 @@ var main=function()
 								moveMultiply(game.ball, (Date.now() > game.halfSpeedStartTime + game.halfSpeedAmount)? 1: 0.5);
 								for(var i = 0; i < game.powerups.length; ++i){
 										move(game.powerups[i]);
+								}
+								for(var i = 0; i < game.bullets.length; ++i){
+										move(game.bullets[i]);
 								}
 						}
 
@@ -457,15 +464,14 @@ var main=function()
 								}
 				  }
 
-						{ // POWERUPS COLLISSION WITH PLATFORM
+						{ // POWERUPS COLLISION WITH PLATFORM
 								for(var i = 0; i < game.powerups.length; ++i){
 										if(CollisionRectCirc(game.platform, game.powerups[i]) != COLLISION_TYPE.NONE){
 												game.powerups[i].position = [100,100];
 												game.powerups[i].velocity = [0,0];
 												document.getElementById("ItemCollect").play();
 
-												r = Math.floor(Math.random() * 3);
-												console.log(r);
+												r = 4//Math.floor(Math.random() * 3);
 												{ // APPLY POWERUP
 														switch(r){
 																case 0:
@@ -481,11 +487,43 @@ var main=function()
 																		game.stuckAmount = game.maxStuckAmount;
 																break;
 																case 4:
-																		
+																		game.bulletAmount = game.maxBulletAmount;
 																break;
 																case 5:
 																		
 																break;
+														}
+												}
+										}
+								}
+						}
+
+						{ // BULLETS COLLISION WITH BRICKS
+								for(var i = 0; i < game.bullets.length; ++i){
+										for(var r = 0; r < game.brickRows; ++r){
+												for(var c = 0; c < game.brickColumns; ++c){
+														if(game.bricks[r][c] != null && CollisionRectCirc(game.bricks[r][c], game.bullets[i]) != COLLISION_TYPE.NONE){
+																game.bullets[i].velocity = [0,0];
+																game.bullets[i].position = [100,100];
+
+																var brickPosition = game.bricks[r][c].position;
+																scene.removeNode("brickNode".concat(r,c));
+																game.bricks[r][c] = null;
+																game.points += 1;
+																document.getElementById("BrickHit").play();
+																if(game.points >= game.brickRows * game.brickColumns){
+																		document.getElementById("theme").pause();
+																		document.getElementById("theme").currentTime = 0;
+																		document.getElementById("VictoryFanfare").play();
+																		game.ball.velocity = [0,0];
+																		setTimeout("location.href = 'index.html'",5 * 1000);
+																}else{
+																		if(Math.random() > 0.0){
+																				var pow = game.powerupPool.getNext();
+																				pow.position = brickPosition;
+																				pow.velocity = [0, -0.2];
+																		}
+																}
 														}
 												}
 										}
@@ -509,6 +547,13 @@ var main=function()
 								Mat4x4.makeTranslation(powerupNodes[i].transform, [game.powerups[i].position[0], game.powerups[i].position[1], 0]);
 								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
 								Mat4x4.multiply( powerupNodes[i].transform, powerupNodes[i].transform, scalingMatrix);
+						}
+				}
+				{ // BULLET MOVEMENT
+						for(var i = 0; i < game.bullets.length; ++i){
+								Mat4x4.makeTranslation(bulletNodes[i].transform, [game.bullets[i].position[0], game.bullets[i].position[1], 0]);
+								Mat4x4.makeScalingUniform(scalingMatrix, game.bullets[i].radius);
+								Mat4x4.multiply( bulletNodes[i].transform, bulletNodes[i].transform, scalingMatrix);
 						}
 				}
 
