@@ -39,6 +39,9 @@ function Game(){
 
 			 this.halfSpeedAmount = 10 * 1000;
 				this.halfSpeedStartTime = this.startTime - this.halfSpeedAmount;
+
+				this.maxStuckAmount = 2;
+				this.stuckAmount = 0;
 		}
 		this.powerupPoolAmount = 10;
 
@@ -77,7 +80,8 @@ function Game(){
 
 		this.onKeyUp = function(e){
 				this.keysDown[e.keyCode] = false;
-				if(e.keyCode == 32 && this.ballIsStuck){
+
+				if(e.keyCode == 32 && this.ballIsStuck){ // ON RELEASE SPACEBAR
 						document.getElementById("ChargeUp").pause();
 						document.getElementById("ChargeUp").currentTime = 0;
 						this.canPlayChargeSound = true;
@@ -85,7 +89,7 @@ function Game(){
 						this.prepForLaunch = false;
 						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
 						this.ballVelocity = this.ballLaunchVelocity;
-						this.ball.velocity = [0, this.ballLaunchVelocity];
+						changeVelocityFromPoint(this.ball.velocity, [this.platform.position[0], this.platform.position[1] - 2], this.ball.position, this.ballVelocity);
 						this.ballLaunchVelocity = 0.1;
 				}
 		}

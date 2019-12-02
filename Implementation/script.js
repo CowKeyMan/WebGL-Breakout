@@ -367,8 +367,14 @@ var main=function()
 					 { //	BALL COLLISION
 								{ // COLLISION WITH PLATFORM
 										if(CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_RIGHT){
-												game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]]; // TODO: CHANGE THIS
-												changeVelocityFromPoint(game.ball.velocity, [game.platform.position[0], game.platform.position[1] - 2], game.ball.position, game.ballVelocity);
+												if(game.stuckAmount > 0){
+														game.ballIsStuck = true;
+														game.ball.velocity = [0,0];
+														game.stuckAmount -=1;
+														game.ball.position[1] = -game.wallHeight/2 + 0.5 + game.ballScale; 
+												}else{
+														changeVelocityFromPoint(game.ball.velocity, [game.platform.position[0], game.platform.position[1] - 2], game.ball.position, game.ballVelocity);
+												}
 												document.getElementById("PlatformHit").play();
 										}
 								}
@@ -472,13 +478,13 @@ var main=function()
 																		game.halfSpeedStartTime = Date.now();
 																break;
 																case 3:
-																		game.troughBricksStartTime = Date.now();
+																		game.stuckAmount = game.maxStuckAmount;
 																break;
 																case 4:
-																		game.troughBricksStartTime = Date.now();
+																		
 																break;
 																case 5:
-																		game.troughBricksStartTime = Date.now();
+																		
 																break;
 														}
 												}
