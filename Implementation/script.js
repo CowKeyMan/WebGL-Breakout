@@ -87,6 +87,17 @@ var main=function()
 								}
 						}
 				}
+				{ // ADD POWERUPS
+						var powerups = []
+						for(var i = 0; i < game.powerupPoolAmount; ++i){
+								var pow = new Model();
+								pow.name = "powerup".concat(i);
+								pow.index = sphere.index;
+								pow.vertex = sphere.vertex;
+								pow.compile(scene);
+								powerups.push(pow);
+						}
+				}
 		}
 
 		{// SET UP PHYSICS ITEMS
@@ -98,6 +109,12 @@ var main=function()
 								game.bricks[r][c].width = ((game.wallWidth-1)/(game.brickColumns)) * 0.9;
 								game.bricks[r][c].height = 0.9 * 3.0 / game.brickRows;
 						}
+				}
+
+				for(var i = 0; i < game.powerupPoolAmount; ++i){
+						game.powerups.push(new CircObject());
+						game.powerups[i].position = [100, 100];
+						game.powerups[i].radius = 0.5;
 				}
 
 				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
@@ -166,12 +183,8 @@ var main=function()
   convertTextures(textureList);
 
 		{ // CREATE THE MATERIALS
-				var material_shiny = new Material();
-				var material_diffuse_brick = new Material();
-				var material_diffuse_platform = new Material();
-				var material_diffuse_wall = new Material();
-
 				{ // BRICK
+						var material_diffuse_brick = new Material();
 						material_diffuse_brick.setAlbedo(gl, textureList.wood);
 						material_diffuse_brick.setShininess(10.0);
 						material_diffuse_brick.setSpecular([0,0,0]);
@@ -180,6 +193,7 @@ var main=function()
 						material_diffuse_brick.bind(gl, scene.shaderProgram);
 				}
 				{ // PLATFORM
+						var material_diffuse_platform = new Material();
 						material_diffuse_platform.setAlbedo(gl, textureList.wood2);
 						material_diffuse_platform.setShininess(10.0);
 						material_diffuse_platform.setSpecular([0,0,0]);
@@ -188,6 +202,7 @@ var main=function()
 						material_diffuse_platform.bind(gl, scene.shaderProgram);
 				}
 				{ // WALL
+						var material_diffuse_wall = new Material();
 						material_diffuse_wall.setAlbedo(gl, textureList.wood3);
 						material_diffuse_wall.setShininess(10.0);
 						material_diffuse_wall.setSpecular([0,0,0]);
@@ -196,12 +211,22 @@ var main=function()
 						material_diffuse_wall.bind(gl, scene.shaderProgram);
 				}
 				{ // BALL
+						var material_shiny = new Material();
 						material_shiny.setAlbedo(gl, textureList.iron);
 						material_shiny.setShininess(300);
 						material_shiny.setSpecular([1,1,1]);
 						material_shiny.setAmbient([1,1,1]);
 						material_shiny.setDiffuse([1,1,1]);
 						material_shiny.bind(gl, scene.shaderProgram);
+				}
+				{ // POWERUPS
+						var material_gold = new Material();
+						material_gold.setAlbedo(gl, textureList.gold);
+						material_gold.setShininess(300);
+						material_gold.setSpecular([1,1,1]);
+						material_gold.setAmbient([1,1,1]);
+						material_gold.setDiffuse([1,1,1]);
+						material_gold.bind(gl, scene.shaderProgram);
 				}
 		}
 
@@ -216,6 +241,10 @@ var main=function()
 						for(var c = 0; c < game.brickColumns; ++c){
 								bricks[r][c].material = material_diffuse_brick;
 						}
+				}
+
+				for(var i = 0; i < game.powerups.length; ++i){
+						powerups[i].material = material_gold;
 				}
 		}
 
@@ -249,7 +278,7 @@ var main=function()
 						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
 				}
 				{ // ADD BRICKS
-						var brickNodes = []
+						var brickNodes = [];
 						for(var r = 0; r < game.brickRows; ++r){
 								brickNodes.push([]);
 								for(var c = 0; c < game.brickColumns; ++c){
@@ -263,9 +292,17 @@ var main=function()
 				}
 				{ // ADD BALL
 					 var ballNode = scene.addNode(lightNode_directional, ball, "ballNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
 						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
+				}
+				{ // ADD POWERUPS
+				  var powerupNodes = [];
+					 for(var i = 0; i < game.powerups.length; ++i){
+								var powerup = scene.addNode(lightNode_directional, powerups[i], "powerupNode".concat(i), Node.NODE_TYPE.MODEL);
+								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
+								Mat4x4.multiply( powerup.transform, powerup.transform, scalingMatrix);
+								powerupNodes.push(powerup);
+						}
 				}
 		}
 
@@ -308,94 +345,117 @@ var main=function()
 						}
 						{ // LAUNCHING BALL
 								if(game.keysDown[32]){ // SPACEBAR
-										document.getElementById("ChargeUp").play();
 										game.ballLaunchVelocity += game.ballAccellerationPerFrame;
 								}
 						}
 
-						move(game.ball);
-						
-						{ // COLLISION WITH PLATFORM
-								if(CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_RIGHT){
-										game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]]; // TODO: CHANGE THIS
-										changeVelocityFromPoint(game.ball.velocity, [game.platform.position[0], game.platform.position[1] - 2], game.ball.position, game.ballVelocity);
-										document.getElementById("PlatformHit").play();
+						{ // MOVEMENT
+								move(game.ball);
+								for(var i = 0; i < game.powerups.length; ++i){
+										move(game.powerups[i]);
 								}
 						}
 
-						{ // COLLISION WITH BRICKS
-								for(var r = 0; r < game.brickRows; ++r){
-										for(var c = 0; c < game.brickColumns; ++c){
-												if(game.bricks[r][c] !== null){
-														var collided = false;
-														if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP){
-																game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
-																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
-																game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
-																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT){
-																game.ball.velocity = [-Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
-																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT){
-																game.ball.velocity = [Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
-																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){ 
-																game.ball.velocity = [-Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
-																collided = true;
-														} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT){
-																game.ball.velocity = [Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
-																collided = true;
-														}
-														
-														if(collided){
-																scene.removeNode("brickNode".concat(r,c));
-																game.bricks[r][c] = null;
-																game.points += 1;
-																document.getElementById("BrickHit").play();
-																if(game.points >= game.brickRows * game.brickColumns){
-																		document.getElementById("theme").pause();
-																		document.getElementById("theme").currentTime = 0;
-																		document.getElementById("VictoryFanfare").play();
-																		game.ball.velocity = [0,0];
-																		setTimeout("location.href = 'index.html'",5 * 1000);
+					 { //	BALL COLLISION
+								{ // COLLISION WITH PLATFORM
+										if(CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_LEFT || CollisionRectCirc(game.platform, game.ball) == COLLISION_TYPE.TOP_RIGHT){
+												game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]]; // TODO: CHANGE THIS
+												changeVelocityFromPoint(game.ball.velocity, [game.platform.position[0], game.platform.position[1] - 2], game.ball.position, game.ballVelocity);
+												document.getElementById("PlatformHit").play();
+										}
+								}
+								{ // COLLISION WITH BRICKS
+										for(var r = 0; r < game.brickRows; ++r){
+												for(var c = 0; c < game.brickColumns; ++c){
+														if(game.bricks[r][c] !== null){
+																var collided = false;
+																if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP){
+																		game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+																		collided = true;
+																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
+																		game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
+																		collided = true;
+																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT){
+																		game.ball.velocity = [-Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																		collided = true;
+																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT){
+																		game.ball.velocity = [Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																		collided = true;
+																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){ 
+																		game.ball.velocity = [-Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
+																		collided = true;
+																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT){
+																		game.ball.velocity = [Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
+																		collided = true;
+																}
+																
+																if(collided){
+																		var brickPosition = game.bricks[r][c].position;
+																		scene.removeNode("brickNode".concat(r,c));
+																		game.bricks[r][c] = null;
+																		game.points += 1;
+																		document.getElementById("BrickHit").play();
+																		if(game.points >= game.brickRows * game.brickColumns){
+																				document.getElementById("theme").pause();
+																				document.getElementById("theme").currentTime = 0;
+																				document.getElementById("VictoryFanfare").play();
+																				game.ball.velocity = [0,0];
+																				setTimeout("location.href = 'index.html'",5 * 1000);
+																		}else{
+																				if(Math.random() > 0.0){
+																						var pow = game.powerupPool.getNext();
+																						pow.position = brickPosition;
+																						pow.velocity = [0, -0.2];
+																				}
+																		}
 																}
 														}
 												}
 										}
 								}
-						}
+								{ // COLLISION WITH WALLS
+										for(var i = 0; i < game.walls.length; ++i){
+												if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.TOP){
+														game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+														document.getElementById("WallHit").play();
+												} else if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.RIGHT){
+														game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
+														document.getElementById("WallHit").play();
+												}
+										}
+								}
+								{// BALL FALLS IN PIT
+										if(game.ball.position[1] < game.deathLevel){
+												game.lives -= 1;
+												if(game.lives <= 0){
+														document.getElementById("theme").pause();
+														document.getElementById("theme").currentTime = 0;
+														document.getElementById("Lose").play();
+														setTimeout("location.href = 'index.html'",3 * 1000);
+														game.ball.position = [100,100]
+												}else{
+														game.ball.position = [game.platform.position[0] ,-game.wallHeight/2 + 0.5 + game.ballScale];
+														game.ball.velocity = [0,0];
+														game.ballIsStuck = true;
+														document.getElementById("ErrorBleep").play();
+												}
+										}
+								}
+				  }
 
-						{ // COLLISION WITH WALLS
-								for(var i = 0; i < game.walls.length; ++i){
-										if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.TOP){
-												game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
-												document.getElementById("WallHit").play();
-										} else if(CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.walls[i], game.ball) == COLLISION_TYPE.RIGHT){
-												game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
-												document.getElementById("WallHit").play();
+						{ // POWERUPS COLLISSION WITH PLATFORM
+								for(var i = 0; i < game.powerups.length; ++i){
+										if(CollisionRectCirc(game.platform, game.powerups[i]) != COLLISION_TYPE.NONE){
+												game.powerups[i].position = [100,100];
+												game.powerups[i].velocity = [0,0];
+												document.getElementById("ItemCollect").play();
 										}
 								}
 						}
 
-						// if ball falls in pit
-						if(game.ball.position[1] < game.deathLevel){
-								game.lives -= 1;
-								if(game.lives <= 0){
-										document.getElementById("theme").pause();
-										document.getElementById("theme").currentTime = 0;
-										document.getElementById("Lose").play();
-										setTimeout("location.href = 'index.html'",3 * 1000);
-										game.ball.position = [100,100]
-								}else{
-										game.ball.position = [game.platform.position[0] ,-game.wallHeight/2 + 0.5 + game.ballScale];
-										game.ball.velocity = [0,0];
-										game.ballIsStuck = true;
-										document.getElementById("ErrorBleep").play();
-								}
-						}
 				}
 
+						
 				{ // PLATFORM MOVEMENT
 						Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
 						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
@@ -405,6 +465,12 @@ var main=function()
 						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
 						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
+				}
+				{
+						// POWERUP MOVEMENT
+						for(var i = 0; i < game.powerups.length; ++i){
+								Mat4x4.makeTranslation(powerupNodes[i].transform, [game.powerups[i].position[0], game.powerups[i].position[1], 0]);
+						}
 				}
 
 				{ // CAMERA MOVEMENT

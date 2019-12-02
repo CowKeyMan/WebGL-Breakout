@@ -20,7 +20,6 @@ function Game(){
 		this.cameraGrazingAngle = Math.PI/2 * 2/3;
 		this.cameraAngle=0;
 
-		// Game objects stuff
 		this.ballScale = 0.5;
 		this.ballAccellerationPerFrame = 0.1/60; // when holding spacebar
 		this.ballLaunchVelocity = 0.1;
@@ -28,6 +27,8 @@ function Game(){
 		this.maxBallVelocityMultiplier = 1;
 		this.ballVelocity = 0.1
 		this.ballIsStuck = true;
+
+		this.powerupPoolAmount = 10;
 
 		// Physics Objects
 		this.walls = [
@@ -39,6 +40,12 @@ function Game(){
 		this.platform = new RectObject();
 		this.ball = new CircObject();
 
+		this.powerups = []
+		this.powerupPool = new ObjectPool();
+		this.powerupPool.pool = this.powerups;
+
+		this.canPlayChargeSound = true;
+
 		this.firstTime = true;
 		this.keysDown = new Array(512).fill(false); // Used as a hash list. If keycode is down, index equivalent to that keycode is true
 
@@ -49,6 +56,11 @@ function Game(){
 						this.firstTime = false;
 						document.getElementById("theme").play();
 				}
+
+				if(e.keyCode == 32 && this.ballIsStuck && this.canPlayChargeSound){
+						document.getElementById("ChargeUp").play();
+						this.canPlayChargeSound = false;
+				}
 		}
 
 		this.onKeyUp = function(e){
@@ -56,6 +68,7 @@ function Game(){
 				if(e.keyCode == 32 && this.ballIsStuck){
 						document.getElementById("ChargeUp").pause();
 						document.getElementById("ChargeUp").currentTime = 0;
+						this.canPlayChargeSound = true;
 						this.ballIsStuck = false;
 						this.prepForLaunch = false;
 						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
