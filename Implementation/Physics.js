@@ -49,9 +49,9 @@ function CollisionRectCirc(r, c){
 }
 
 function CollisionCircCirc(c1, c2){
-		var circ1_center_X = c1.position[0], circ1_center_y = c1.position[1];
+		var circ1_center_X = c1.position[0], circ1_center_Y = c1.position[1];
 		var circ1_radius = c1.radius;
-		var circ2_center_X = c2.position[0], circ2_center_y = c2.position[1];
+		var circ2_center_X = c2.position[0], circ2_center_Y = c2.position[1];
 		var circ2_radius = c2.radius;
 
 		if(euclidean_distance(circ1_center_X, circ1_center_Y, circ2_center_X, circ2_center_Y) < circ1_radius + circ2_radius){

@@ -29,6 +29,8 @@ function Game(){
 		this.ballVelocity = 0.1
 		this.ballIsStuck = true;
 
+		this.powerupVelocity = -0.2;
+
 		{ // The different powerups
 				this.troughBricksAmount = 7 * 1000;
 				this.troughBricksStartTime = this.startTime - this.troughBricksAmount;
@@ -69,6 +71,11 @@ function Game(){
 		this.bulletPool = new ObjectPool();
 		this.bulletPool.pool = this.bullets;
 
+		this.additionalBallsPoolAmount = 10;
+		this.additionalBalls = [];
+		this.additionalBallPool = new ObjectPool();
+		this.additionalBallPool.pool = this.additionalBalls;
+
 		this.canPlayChargeSound = true;
 
 		this.firstTime = true;
@@ -77,12 +84,12 @@ function Game(){
 		this.onKeyDown = function(e){ 
 				this.keysDown[e.keyCode] = true; 
 
-				if(this.firstTime){
-						this.firstTime = false;
-						document.getElementById("theme").play();
-				}
-
+				
 				if(e.keyCode == 32 && this.ballIsStuck && this.canPlayChargeSound){
+						if(this.firstTime){
+								this.firstTime = false;
+								document.getElementById("theme").play();
+						}
 						document.getElementById("ChargeUp").play();
 						this.canPlayChargeSound = false;
 				}
@@ -94,6 +101,8 @@ function Game(){
 						var b = this.bulletPool.getNext();
 						b.position = [this.platform.position[0], this.platform.position[1]];
 						b.velocity = [0, this.bulletVelocity];
+						document.getElementById("BulletShot").currentTime = 0;
+						document.getElementById("BulletShot").play();
 				}
 		}
 
@@ -101,15 +110,17 @@ function Game(){
 				this.keysDown[e.keyCode] = false;
 
 				if(e.keyCode == 32 && this.ballIsStuck){ // ON RELEASE SPACEBAR
-						document.getElementById("ChargeUp").pause();
-						document.getElementById("ChargeUp").currentTime = 0;
-						this.canPlayChargeSound = true;
-						this.ballIsStuck = false;
-						this.prepForLaunch = false;
-						this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
-						this.ballVelocity = this.ballLaunchVelocity;
-						changeVelocityFromPoint(this.ball.velocity, [this.platform.position[0], this.platform.position[1] - 2], this.ball.position, this.ballVelocity);
-						this.ballLaunchVelocity = 0.1;
+						if(this.points < this.brickRows * this.brickColumns){
+								document.getElementById("ChargeUp").pause();
+								document.getElementById("ChargeUp").currentTime = 0;
+								this.canPlayChargeSound = true;
+								this.ballIsStuck = false;
+								this.prepForLaunch = false;
+								this.ballLaunchVelocity = (this.ballLaunchVelocity > this.maxBallVelocity)? this.maxBallVelocity : this.ballLaunchVelocity;
+								this.ballVelocity = this.ballLaunchVelocity;
+								changeVelocityFromPoint(this.ball.velocity, [this.platform.position[0], this.platform.position[1] - 2], this.ball.position, this.ballVelocity);
+								this.ballLaunchVelocity = 0.1;
+						}
 				}
 
 
