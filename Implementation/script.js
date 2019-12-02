@@ -114,7 +114,7 @@ var main=function()
 				for(var i = 0; i < game.powerupPoolAmount; ++i){
 						game.powerups.push(new CircObject());
 						game.powerups[i].position = [100, 100];
-						game.powerups[i].radius = 0.5;
+						game.powerups[i].radius = 0.3;
 				}
 
 				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
@@ -327,7 +327,7 @@ var main=function()
 				{ // GAME UPDATE
 						{ // PLATFORM MOVEMENT
 								if(game.keysDown[37]){ // LEFT ARROW
-										if(game.platform.position[0] - (game.platform.width*game.platformWidthMultiplier)/2 > - (game.wallWidth/2 - 0.6)){
+										if(game.platform.position[0] - (game.platform.width)/2 > - (game.wallWidth/2 - 0.6)){
 												game.platform.position[0] -= game.platformSpeed;
 												if(game.ballIsStuck) {
 														game.ball.position[0] -= game.platformSpeed;
@@ -335,7 +335,7 @@ var main=function()
 										}
 								}
 								if(game.keysDown[39]){ // RIGHT ARROW
-										if(game.platform.position[0] + (game.platform.width*game.platformWidthMultiplier)/2 < (game.wallWidth/2 - 0.6)){
+										if(game.platform.position[0] + (game.platform.width)/2 < (game.wallWidth/2 - 0.6)){
 												game.platform.position[0] += game.platformSpeed;
 												if(game.ballIsStuck) {
 														game.ball.position[0] += game.platformSpeed;
@@ -350,9 +350,17 @@ var main=function()
 						}
 
 						{ // MOVEMENT
-								move(game.ball);
+								moveMultiply(game.ball, (Date.now() > game.halfSpeedStartTime + game.halfSpeedAmount)? 1: 0.5);
 								for(var i = 0; i < game.powerups.length; ++i){
 										move(game.powerups[i]);
+								}
+						}
+
+						{ // POWERUP UPDATE
+								if(Date.now() > game.widePlatformStartTime + game.widePlatformAmount){
+										game.platform.width = game.platformScale;
+								}else{
+										game.platform.width = game.platformScale * game.platformWidthMultiplier;
 								}
 						}
 
@@ -370,22 +378,22 @@ var main=function()
 														if(game.bricks[r][c] !== null){
 																var collided = false;
 																if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP){
-																		game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [game.ball.velocity[0], -game.ball.velocity[1]];
 																		collided = true;
 																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.RIGHT){
-																		game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [-game.ball.velocity[0], game.ball.velocity[1]];
 																		collided = true;
 																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_LEFT){
-																		game.ball.velocity = [-Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [-Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
 																		collided = true;
 																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.TOP_RIGHT){
-																		game.ball.velocity = [Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [Math.abs(game.ball.velocity[0]), Math.abs(game.ball.velocity[1])];
 																		collided = true;
 																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_LEFT){ 
-																		game.ball.velocity = [-Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [-Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
 																		collided = true;
 																} else if(CollisionRectCirc(game.bricks[r][c], game.ball) == COLLISION_TYPE.BOTTOM_RIGHT){
-																		game.ball.velocity = [Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
+																		if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.ball.velocity = [Math.abs(game.ball.velocity[0]), -Math.abs(game.ball.velocity[1])];
 																		collided = true;
 																}
 																
@@ -449,27 +457,52 @@ var main=function()
 												game.powerups[i].position = [100,100];
 												game.powerups[i].velocity = [0,0];
 												document.getElementById("ItemCollect").play();
+
+												r = Math.floor(Math.random() * 3);
+												console.log(r);
+												{ // APPLY POWERUP
+														switch(r){
+																case 0:
+																		game.troughBricksStartTime = Date.now();
+																break;
+																case 1:
+																		game.widePlatformStartTime = Date.now();
+																break;
+																case 2:
+																		game.halfSpeedStartTime = Date.now();
+																break;
+																case 3:
+																		game.troughBricksStartTime = Date.now();
+																break;
+																case 4:
+																		game.troughBricksStartTime = Date.now();
+																break;
+																case 5:
+																		game.troughBricksStartTime = Date.now();
+																break;
+														}
+												}
 										}
 								}
 						}
 
 				}
 
-						
 				{ // PLATFORM MOVEMENT
 						Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
-						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
+						Mat4x4.makeScaling(scalingMatrix, [game.platform.width,0.5,1]);
 						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
 				}
-				{// BALL MOVEMENT
+				{// BALL MOVEMEN
 						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
 						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
-				{
-						// POWERUP MOVEMENT
+				{ // POWERUP MOVEMENT
 						for(var i = 0; i < game.powerups.length; ++i){
 								Mat4x4.makeTranslation(powerupNodes[i].transform, [game.powerups[i].position[0], game.powerups[i].position[1], 0]);
+								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
+								Mat4x4.multiply( powerupNodes[i].transform, powerupNodes[i].transform, scalingMatrix);
 						}
 				}
 

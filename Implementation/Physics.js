@@ -94,3 +94,8 @@ function move(o){
 		o.position[0] += o.velocity[0];
 		o.position[1] += o.velocity[1];
 }
+
+function moveMultiply(o, multiplier){
+		o.position[0] += o.velocity[0] * multiplier;
+		o.position[1] += o.velocity[1] * multiplier;
+}

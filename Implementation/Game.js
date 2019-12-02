@@ -1,4 +1,6 @@
 function Game(){
+		this.startTime = Date.now();
+
 		this.lives = 3;
 		this.deathLevel = -7; // position y of ball to be dead
 		this.points = 0;
@@ -10,8 +12,7 @@ function Game(){
 		this.brickColumns = 9;
 
 		this.platformSpeed = 0.1;
-		this.platformScale = 3;
-		this.platformWidthMultiplier = 1;
+		this.platformScale = 2.5;
 
 		this.minCameraSpeed = 0.01;
 		this.maxCameraSpeed = 0.1;
@@ -28,6 +29,17 @@ function Game(){
 		this.ballVelocity = 0.1
 		this.ballIsStuck = true;
 
+		{ // The different powerups
+				this.troughBricksAmount = 7 * 1000;
+				this.troughBricksStartTime = this.startTime - this.troughBricksAmount;
+
+				this.widePlatformAmount = 7 * 1000;
+				this.widePlatformStartTime = this.startTime - this.widePlatformAmount;
+				this.platformWidthMultiplier = 1.3;
+
+			 this.halfSpeedAmount = 10 * 1000;
+				this.halfSpeedStartTime = this.startTime - this.halfSpeedAmount;
+		}
 		this.powerupPoolAmount = 10;
 
 		// Physics Objects
