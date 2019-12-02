@@ -97,7 +97,7 @@ var main=function()
 
 				for(var i = 0; i < game.powerupPoolAmount; ++i){
 						game.powerups.push(new CircObject());
-						game.powerups[i].position = [100 + i * 50, 100];
+						game.powerups[i].position = [100 + i * 50, 1000];
 						game.powerups[i].radius = 0.3;
 				}
 
@@ -341,7 +341,6 @@ var main=function()
 
   scene.setViewFrustum(1, 100, 0.5236);
 
-		
   var animate=function() 
   {
 				{ // GAME UPDATE
@@ -371,9 +370,9 @@ var main=function()
 
 						{ // MOVEMENT
 								// to avoid having ball get stuck
-								if(Math.abs(game.ball.velocity[1]) < 0.01 && !game.ballIsStuck && game.score < game.brickRows * game.brickColumns){
-										game.ball.velocity[0] -= 0.01;
-										game.ball.velocity[1] -= 0.01;
+								if(Math.abs(game.ball.velocity[1]) < 0.05 && game.ball.velocity[0] > 0){
+										game.ball.velocity[1] -= 0.05;
+										console.log("hello");
 								}
 								moveMultiply(game.ball, (Date.now() > game.halfSpeedStartTime + game.halfSpeedAmount)? 1: 0.5);
 								for(var i = 0; i < game.powerups.length; ++i){
@@ -592,22 +591,22 @@ var main=function()
 																if(game.bricks[r][c] !== null){
 																		var collided = false;
 																		if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.BOTTOM || CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.TOP){
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [game.additionalBalls[i].velocity[0], -game.additionalBalls[i].velocity[1]];
+																				game.additionalBalls[i].velocity = [game.additionalBalls[i].velocity[0], -game.additionalBalls[i].velocity[1]];
 																				collided = true;
 																		} else if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.LEFT || CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.RIGHT){
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [-game.additionalBalls[i].velocity[0], game.additionalBalls[i].velocity[1]];
+																				game.additionalBalls[i].velocity = [-game.additionalBalls[i].velocity[0], game.additionalBalls[i].velocity[1]];
 																				collided = true;
 																		} else if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.TOP_LEFT){
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [-Math.abs(game.additionalBalls[i].velocity[0]), Math.abs(game.additionalBalls[i].velocity[1])];
+																				game.additionalBalls[i].velocity = [-Math.abs(game.additionalBalls[i].velocity[0]), Math.abs(game.additionalBalls[i].velocity[1])];
 																				collided = true;
 																		} else if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.TOP_RIGHT){
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [Math.abs(game.additionalBalls[i].velocity[0]), Math.abs(game.additionalBalls[i].velocity[1])];
+																				game.additionalBalls[i].velocity = [Math.abs(game.additionalBalls[i].velocity[0]), Math.abs(game.additionalBalls[i].velocity[1])];
 																				collided = true;
 																		} else if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.BOTTOM_LEFT){ 
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [-Math.abs(game.additionalBalls[i].velocity[0]), -Math.abs(game.additionalBalls[i].velocity[1])];
+																				game.additionalBalls[i].velocity = [-Math.abs(game.additionalBalls[i].velocity[0]), -Math.abs(game.additionalBalls[i].velocity[1])];
 																				collided = true;
 																		} else if(CollisionRectCirc(game.bricks[r][c], game.additionalBalls[i]) == COLLISION_TYPE.BOTTOM_RIGHT){
-																				if(Date.now() > game.troughBricksStartTime + game.troughBricksAmount) game.additionalBalls[i].velocity = [Math.abs(game.additionalBalls[i].velocity[0]), -Math.abs(game.additionalBalls[i].velocity[1])];
+																				game.additionalBalls[i].velocity = [Math.abs(game.additionalBalls[i].velocity[0]), -Math.abs(game.additionalBalls[i].velocity[1])];
 																				collided = true;
 																		}
 																		
