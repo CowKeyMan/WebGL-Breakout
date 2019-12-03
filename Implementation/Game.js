@@ -76,6 +76,18 @@ function Game(){
 		this.additionalBallPool = new ObjectPool();
 		this.additionalBallPool.pool = this.additionalBalls;
 
+		this.particlesPoolAmount = 10;
+		this.particlesPerPool = 4;
+		this.particlesDuration = 0.2 * 1000;
+		this.particlesMaxVelocity = 0.2
+		this.particlesSize = 0.4;
+		this.particlesStartTime = new Array(this.particlesPoolAmount).fill(Date.now() - this.particlesDuration);
+		this.particles = [];
+		this.particlesPool = new ObjectPool();
+		this.particlesPool.pool = this.particles;
+
+		this.particlesSize = 0.3;
+		
 		this.canPlayChargeSound = true;
 
 		this.firstTime = true;

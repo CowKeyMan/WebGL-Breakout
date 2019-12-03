@@ -82,6 +82,13 @@ var main=function()
 						bullet.vertex = sphere.vertex;
 						bullet.compile(scene);
 				}
+				{ // ADD PARTICLES
+						var particle = new Model();
+						particle.name = "particle";
+						particle.index = sphere.index;
+						particle.vertex = sphere.vertex;
+						particle.compile(scene);
+				}
 		}
 
 		{// SET UP PHYSICS ITEMS
@@ -98,7 +105,7 @@ var main=function()
 				for(var i = 0; i < game.powerupPoolAmount; ++i){
 						game.powerups.push(new CircObject());
 						game.powerups[i].position = [100 + i * 50, 1000];
-						game.powerups[i].radius = 0.3;
+						game.powerups[i].radius = 0.4;
 				}
 
 				for(var i = 0; i < game.bulletPoolAmount; ++i){
@@ -109,8 +116,14 @@ var main=function()
 
 				for(var i = 0; i < game.additionalBallsPoolAmount; ++i){
 						game.additionalBalls.push(new CircObject());
-						game.additionalBalls[i].position = [100, 100];
+						game.additionalBalls[i].position = [100 * i, 100];
 						game.additionalBalls[i].radius = game.ballScale;
+				}
+
+				for(var i = 0; i < game.particlesPerPool * game.particlesPoolAmount; ++i){
+						game.particles.push(new CircObject());
+						game.particles[i].position = [0, 100];
+						game.particles[i].radius = game.particlesSize;
 				}
 
 				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
@@ -247,10 +260,13 @@ var main=function()
 				powerup.material = material_gold;
 
 				bullet.material = material_oil;
+				
+				particle.material = material_diffuse_brick;
 		}
 
 		{ // SET UP SCENE GRAPH
 				var scalingMatrix = Mat4x4.create(); // matrix to set scale of items
+				var rotationMatrix = Mat4x4.create(); // matrix to set scale of items
 
 				var lightNode_point = scene.addNode(scene.root, light_point, "lightNode_point", Node.NODE_TYPE.LIGHT);
 				var lightNode_spot_left = scene.addNode(lightNode_point, light_spot_left, "lightNode_spot_left", Node.NODE_TYPE.LIGHT);
@@ -274,9 +290,6 @@ var main=function()
 				}
 				{ // ADD PLATFORM
 						var platformNode = scene.addNode(lightNode_directional, platform, "platformNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeTranslation(platformNode.transform, [0,-game.wallHeight/2 + 0.25,0]);
-						Mat4x4.makeScaling(scalingMatrix, [game.platformScale,0.5,1]);
-						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
 				}
 				{ // ADD BRICKS
 						var brickNodes = [];
@@ -293,15 +306,11 @@ var main=function()
 				}
 				{ // ADD BALL
 					 var ballNode = scene.addNode(lightNode_directional, ball, "ballNode", Node.NODE_TYPE.MODEL);
-						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
-						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 				}
 				{ // ADD POWERUPS
 				  var powerupNodes = [];
 					 for(var i = 0; i < game.powerups.length; ++i){
 								var powerupNode = scene.addNode(lightNode_directional, powerup, "powerupNode".concat(i), Node.NODE_TYPE.MODEL);
-								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
-								Mat4x4.multiply( powerupNode.transform, powerupNode.transform, scalingMatrix);
 								powerupNodes.push(powerupNode);
 						}
 				}
@@ -309,8 +318,6 @@ var main=function()
 				  var bulletNodes = [];
 					 for(var i = 0; i < game.bullets.length; ++i){
 								var bulletNode = scene.addNode(lightNode_directional, bullet, "bulletNode".concat(i), Node.NODE_TYPE.MODEL);
-								Mat4x4.makeScalingUniform(scalingMatrix, game.bullets[i].radius);
-								Mat4x4.multiply( bulletNode.transform, bulletNode.transform, scalingMatrix);
 								bulletNodes.push(bulletNode);
 						}
 				}
@@ -318,10 +325,17 @@ var main=function()
 						var additionalBallsNodes = [];
 					 for(var i = 0; i < game.additionalBalls.length; ++i){
 								var additionalBall = scene.addNode(lightNode_directional, ball, "additionalBall".concat(i), Node.NODE_TYPE.MODEL);
-								Mat4x4.makeTranslation(additionalBall.transform, [game.additionalBalls[i].position[0], game.additionalBalls[i].position[1], 0]);
-								Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
-								Mat4x4.multiply( additionalBall.transform, additionalBall.transform, scalingMatrix);
 								additionalBallsNodes.push(additionalBall);
+						}
+				}
+				{ // ADD PARTICLES
+						var particleGroups = [];
+						for(var i = 0; i < game.particlesPoolAmount; ++i){
+								particleGroups.push([]);
+								for(var j = 0; j < game.particlesPerPool; ++j){
+										var particleNode = scene.addNode(lightNode_directional, particle, "particleNode".concat(i, '_', j), Node.NODE_TYPE.MODEL);
+										particleGroups[i].push(particleNode);
+								}
 						}
 				}
 		}
@@ -372,7 +386,6 @@ var main=function()
 								// to avoid having ball get stuck
 								if(Math.abs(game.ball.velocity[1]) < 0.05 && game.ball.velocity[0] > 0){
 										game.ball.velocity[1] -= 0.05;
-										console.log("hello");
 								}
 								moveMultiply(game.ball, (Date.now() > game.halfSpeedStartTime + game.halfSpeedAmount)? 1: 0.5);
 								for(var i = 0; i < game.powerups.length; ++i){
@@ -383,6 +396,9 @@ var main=function()
 								}
 								for(var i = 0; i < game.additionalBalls.length; ++i){
 										move(game.additionalBalls[i]);
+								}
+								for(var i = 0; i < game.particles.length; ++i){
+										move(game.particles[i]);
 								}
 						}
 
@@ -438,7 +454,16 @@ var main=function()
 																		scene.removeNode("brickNode".concat(r,c));
 																		game.bricks[r][c] = null;
 																		game.points += 1;
+																		document.getElementById("BrickHit").currentTime = 0;
 																		document.getElementById("BrickHit").play();
+
+																		for(var p = 0; p < game.particlesPerPool; ++p){
+																				var par = game.particlesPool.getNext();
+																				par.position = [brickPosition[0], brickPosition[1]];
+																				par.velocity = [Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity, Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity]
+																		}
+																		game.particlesStartTime[(Math.floor(game.particlesPool.index/4) - 1) % game.particlesPoolAmount] = Date.now();
+
 																		if(game.points >= game.brickRows * game.brickColumns){
 																				document.getElementById("theme").pause();
 																				document.getElementById("theme").currentTime = 0;
@@ -446,9 +471,9 @@ var main=function()
 																				game.ball.velocity = [0,0];
 																				setTimeout("location.href = 'index.html'",5 * 1000);
 																		}else{
-																				if(Math.random() > 0.0){
+																				if(Math.random() > 0.5){
 																						var pow = game.powerupPool.getNext();
-																						pow.position = brickPosition;
+																						pow.position = [brickPosition[0], brickPosition[1]];
 																						pow.velocity = [0, game.powerupVelocity];
 																				}
 																		}
@@ -556,6 +581,15 @@ var main=function()
 																game.points += 1;
 																document.getElementById("BrickHit").currentTime = 0;
 																document.getElementById("BrickHit").play();
+
+																for(var p = 0; p < game.particlesPerPool; ++p){
+																		var par = game.particlesPool.getNext();
+																		par.position = [brickPosition[0], brickPosition[1]];
+																		par.velocity = [Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity, Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity]
+																}
+																game.particlesStartTime[(Math.floor(game.particlesPool.index/4) - 1) % game.particlesPoolAmount] = Date.now();
+
+
 																if(game.points >= game.brickRows * game.brickColumns){
 																		document.getElementById("theme").pause();
 																		document.getElementById("theme").currentTime = 0;
@@ -563,7 +597,7 @@ var main=function()
 																		game.ball.velocity = [0,0];
 																		setTimeout("location.href = 'index.html'",5 * 1000);
 																}else{
-																		if(Math.random() > 0.0){
+																		if(Math.random() > 0.5){
 																				var pow = game.powerupPool.getNext();
 																				pow.position = brickPosition;
 																				pow.velocity = [0, game.powerupVelocity];
@@ -615,7 +649,17 @@ var main=function()
 																				scene.removeNode("brickNode".concat(r,c));
 																				game.bricks[r][c] = null;
 																				game.points += 1;
+																				document.getElementById("BrickHit").currentTime = 0;
 																				document.getElementById("BrickHit").play();
+
+																				for(var p = 0; p < game.particlesPerPool; ++p){
+																						var par = game.particlesPool.getNext();
+																						par.position = [brickPosition[0], brickPosition[1]];
+																						par.velocity = [Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity, Math.random() * 2*game.particlesMaxVelocity - game.particlesMaxVelocity]
+																				}
+																				game.particlesStartTime[(Math.floor(game.particlesPool.index/4) - 1) % game.particlesPoolAmount] = Date.now();
+
+
 																				if(game.points >= game.brickRows * game.brickColumns){
 																						document.getElementById("theme").pause();
 																						document.getElementById("theme").currentTime = 0;
@@ -626,7 +670,7 @@ var main=function()
 																						}
 																						setTimeout("location.href = 'index.html'",5 * 1000);
 																				}else{
-																						if(Math.random() > 0.0){
+																						if(Math.random() > 0.5){
 																								var pow = game.powerupPool.getNext();
 																								pow.position = brickPosition;
 																								pow.velocity = [0, game.powerupVelocity];
@@ -680,6 +724,17 @@ var main=function()
 								}
 				  }
 
+						{ // PARTICLES UPDATE
+								for(var i = 0; i < game.particlesPoolAmount; ++i){
+										if(Date.now() > game.particlesStartTime[i] + game.particlesDuration){
+												for(var j = 0; j < game.particlesPerPool; ++j){
+														game.particles[i*game.particlesPerPool + j].velocity = [0,0];
+														game.particles[i*game.particlesPerPool + j].position = [100,100];
+												}
+										}
+								}
+						}
+
 				}
 
 				{ // PLATFORM MOVEMENT
@@ -711,6 +766,16 @@ var main=function()
 								Mat4x4.makeTranslation(additionalBallsNodes[i].transform, [game.additionalBalls[i].position[0], game.additionalBalls[i].position[1], 0]);
 								Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
 								Mat4x4.multiply( additionalBallsNodes[i].transform, additionalBallsNodes[i].transform, scalingMatrix);
+						}
+				}
+				{ // PARTICLES MOVEMENT
+						for(var i = 0; i < particleGroups.length; ++i){
+								for(var j = 0; j < particleGroups[i].length; ++j){
+
+										Mat4x4.makeScalingUniform(scalingMatrix, (1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize );
+										Mat4x4.makeTranslation(particleGroups[i][j].transform, [game.particles[i*game.particlesPerPool + j].position[0], game.particles[i*game.particlesPerPool + j].position[1],0]);
+										Mat4x4.multiply( particleGroups[i][j].transform, particleGroups[i][j].transform, scalingMatrix);
+								}
 						}
 				}
 

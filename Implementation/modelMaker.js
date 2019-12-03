@@ -64,6 +64,16 @@ function makeQuad(positions, normals, colours, uvs)
   return {vertex : vertexList, index : indexList};
 };
 
+function makeRectangle(centre, height, length){
+		var face = makeQuad(
+    [[-length/2, -height/2, 0], [length/2, -height/2, 0], [length/2, height/2, 0], [-length/2, height/2, 0]],
+    [[0,0,1], [0,0,1], [0,0,1], [0,0,1]],
+    [[0,0,0], [0,0,0], [0,0,0], [0,0,0]],
+    [[0,0], [1,0], [1,1], [0,1]]);
+
+		return face;
+}
+
 function makeCuboid(centre, height, length, depth/*, colour*/){
 		var cuboid = { vertex:[], index:[] };
 
