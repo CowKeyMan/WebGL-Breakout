@@ -3,10 +3,7 @@ function ObjectPool(){
 		this.index = 0;
 
 		this.getNext = function(){
-				this.index++;
-				if(this.index >= this.pool.length){
-						this.index = 0;
-				}
+				this.index = (this.index+1) % this.pool.length;
 				return this.pool[this.index];
 		}
 }

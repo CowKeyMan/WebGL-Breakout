@@ -6,7 +6,6 @@ var main=function()
 		{ // HELPER VARIABLES
 				var Vec3 = matrixHelper.vector3;
 				var Mat4x4 = matrixHelper.matrix4;
-				var pi = 3.14159265359;
 		}
 
 		{ // INITIALISE CONTEXT (CANVAS, GL)
@@ -146,8 +145,7 @@ var main=function()
 				game.walls[2].height = 1;
 		}
 
-  //--------------------------------------------------------------------------------------------------------//
-  { // Set up lights
+  { // SET UP LIGHTS
 				var light_directional = new Light();
 				light_directional.type = Light.LIGHT_TYPE.DIRECTIONAL;
 				light_directional.setDiffuse([2, 2, 2]);
@@ -185,11 +183,10 @@ var main=function()
 				light_spot_right.bind(gl, scene.shaderProgram, 3);
 		}
 
-  //--------------------------------------------------------------------------------------------------------//
-  // Set up textures and materials
-  //--------------------------------------------------------------------------------------------------------//
-  var textureList = new Textures();
-  convertTextures(textureList);
+		{ // INITIALISE TEXTURES
+				var textureList = new Textures();
+				convertTextures(textureList);
+		}
 
 		{ // CREATE THE MATERIALS
 				{ // BRICK
@@ -248,7 +245,7 @@ var main=function()
 				}
 		}
 
-		{ // GIVE MATERIALS TO OBJECTS
+		{ // ASSIGN MATERIALS TO OBJECTS
 				wall.material = material_diffuse_wall;
 
 				platform.material = material_diffuse_platform;
@@ -340,14 +337,10 @@ var main=function()
 				}
 		}
 
-  var lightTransform = Mat4x4.create();
-  var modelTransform = Mat4x4.create(); 
   var viewTransform = Mat4x4.create(); 
-  var observer = Vec3.from(0,0,25);
-
   Mat4x4.makeIdentity(viewTransform);
-  Mat4x4.makeIdentity(modelTransform);
-  Mat4x4.makeIdentity(lightTransform);
+
+  var observer = Vec3.from(0,0,25);
 
   //--------------------------------------------------------------------------------------------------------//
   // Set up render loop
@@ -387,22 +380,32 @@ var main=function()
 								if(Math.abs(game.ball.velocity[1]) < 0.05 && game.ball.velocity[0] > 0){
 										game.ball.velocity[1] -= 0.05;
 								}
+
+								// move ball
 								moveMultiply(game.ball, (Date.now() > game.halfSpeedStartTime + game.halfSpeedAmount)? 1: 0.5);
+
+								// move powerups
 								for(var i = 0; i < game.powerups.length; ++i){
 										move(game.powerups[i]);
 								}
+
+								// move bullets
 								for(var i = 0; i < game.bullets.length; ++i){
 										move(game.bullets[i]);
 								}
+
+								// move ther other balls
 								for(var i = 0; i < game.additionalBalls.length; ++i){
 										move(game.additionalBalls[i]);
 								}
+
+								// move the particles
 								for(var i = 0; i < game.particles.length; ++i){
 										move(game.particles[i]);
 								}
 						}
 
-						{ // POWERUP UPDATE
+						{ // PLATFORM WIDTH UPDATE
 								if(Date.now() > game.widePlatformStartTime + game.widePlatformAmount){
 										game.platform.width = game.platformScale;
 								}else{
@@ -737,48 +740,55 @@ var main=function()
 
 				}
 
-				{ // PLATFORM MOVEMENT
-						Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
-						Mat4x4.makeScaling(scalingMatrix, [game.platform.width,0.5,1]);
-						Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
-				}
-				{ // BALL MOVEMENT
-						Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
-						Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
-						Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
-				}
-				{ // POWERUP MOVEMENT
-						for(var i = 0; i < game.powerups.length; ++i){
-								Mat4x4.makeTranslation(powerupNodes[i].transform, [game.powerups[i].position[0], game.powerups[i].position[1], 0]);
-								Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
-								Mat4x4.multiply( powerupNodes[i].transform, powerupNodes[i].transform, scalingMatrix);
+				{ // MOVEMENT OF THE ACTUAL NODE OBJECTS ACCORDING TO THEIR PHYSICS OBJECTS
+						{ // PLATFORM MOVEMENT
+								Mat4x4.makeTranslation(platformNode.transform, [game.platform.position[0],-game.wallHeight/2 + 0.25,0]);
+								Mat4x4.makeScaling(scalingMatrix, [game.platform.width,0.5,1]);
+								Mat4x4.multiply( platformNode.transform,  platformNode.transform, scalingMatrix);
 						}
-				}
-				{ // BULLET MOVEMENT
-						for(var i = 0; i < game.bullets.length; ++i){
-								Mat4x4.makeTranslation(bulletNodes[i].transform, [game.bullets[i].position[0], game.bullets[i].position[1], 0]);
-								Mat4x4.makeScalingUniform(scalingMatrix, game.bullets[i].radius);
-								Mat4x4.multiply( bulletNodes[i].transform, bulletNodes[i].transform, scalingMatrix);
-						}
-				}
-				{ // ADDITIONAL BALL MOVEMENT
-						for(var i = 0; i < game.additionalBalls.length; ++i){
-								Mat4x4.makeTranslation(additionalBallsNodes[i].transform, [game.additionalBalls[i].position[0], game.additionalBalls[i].position[1], 0]);
+						{ // BALL MOVEMENT
+								Mat4x4.makeTranslation(ballNode.transform, [game.ball.position[0],game.ball.position[1],0]);
 								Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
-								Mat4x4.multiply( additionalBallsNodes[i].transform, additionalBallsNodes[i].transform, scalingMatrix);
+								Mat4x4.multiply( ballNode.transform, ballNode.transform, scalingMatrix);
 						}
-				}
-				{ // PARTICLES MOVEMENT
-						for(var i = 0; i < particleGroups.length; ++i){
-								for(var j = 0; j < particleGroups[i].length; ++j){
+						{ // POWERUP MOVEMENT
+								for(var i = 0; i < game.powerups.length; ++i){
+										Mat4x4.makeTranslation(powerupNodes[i].transform, [game.powerups[i].position[0], game.powerups[i].position[1], 0]);
+										Mat4x4.makeScalingUniform(scalingMatrix, game.powerups[i].radius);
+										Mat4x4.multiply( powerupNodes[i].transform, powerupNodes[i].transform, scalingMatrix);
+								}
+						}
+						{ // BULLET MOVEMENT
+								for(var i = 0; i < game.bullets.length; ++i){
+										Mat4x4.makeTranslation(bulletNodes[i].transform, [game.bullets[i].position[0], game.bullets[i].position[1], 0]);
+										Mat4x4.makeScalingUniform(scalingMatrix, game.bullets[i].radius);
+										Mat4x4.multiply( bulletNodes[i].transform, bulletNodes[i].transform, scalingMatrix);
+								}
+						}
+						{ // ADDITIONAL BALL MOVEMENT
+								for(var i = 0; i < game.additionalBalls.length; ++i){
+										Mat4x4.makeTranslation(additionalBallsNodes[i].transform, [game.additionalBalls[i].position[0], game.additionalBalls[i].position[1], 0]);
+										Mat4x4.makeScalingUniform(scalingMatrix, game.ballScale);
+										Mat4x4.multiply( additionalBallsNodes[i].transform, additionalBallsNodes[i].transform, scalingMatrix);
+								}
+						}
+						{ // PARTICLES MOVEMENT
+								for(var i = 0; i < particleGroups.length; ++i){
+										for(var j = 0; j < particleGroups[i].length; ++j){
 
-										Mat4x4.makeScalingUniform(scalingMatrix, (1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize );
-										Mat4x4.makeTranslation(particleGroups[i][j].transform, [game.particles[i*game.particlesPerPool + j].position[0], game.particles[i*game.particlesPerPool + j].position[1],0]);
-										Mat4x4.multiply( particleGroups[i][j].transform, particleGroups[i][j].transform, scalingMatrix);
+												Mat4x4.makeScalingUniform(scalingMatrix, (1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize );
+												Mat4x4.makeTranslation(particleGroups[i][j].transform, [game.particles[i*game.particlesPerPool + j].position[0], game.particles[i*game.particlesPerPool + j].position[1],0]);
+												Mat4x4.multiply( particleGroups[i][j].transform, particleGroups[i][j].transform, scalingMatrix);
+										}
 								}
 						}
 				}
 
+				{ //LIGHT MOVEMENT
+						lightNode_point.nodeObject.position = [game.ball.position[0], game.ball.position[1], 0];
+						lightNode_spot_left.nodeObject.position = [game.platform.position[0] - game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
+						lightNode_spot_right.nodeObject.position = [game.platform.position[0] + game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
+				}
 
 				{ // CAMERA MOVEMENT
 						if(game.keysDown[81]){       // pressing Q
@@ -811,24 +821,21 @@ var main=function()
 						}
 				}
 
-				{ //LIGHT MOVEMENT
-						lightNode_point.nodeObject.position = [game.ball.position[0], game.ball.position[1], 0];
-						lightNode_spot_left.nodeObject.position = [game.platform.position[0] - game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
-						lightNode_spot_right.nodeObject.position = [game.platform.position[0] + game.platform.width/2, game.platform.position[1] - game.platform.height, 0];
+				{ // CAMERA CONFIGURATION
+						Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
+						Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
+						scene.lookAt(observer, [0,0,0], [0,10,0]);
 				}
-    //Mat4x4.makeTranslation(sphereNode2.transform, [10,0,0]);
-				Mat4x4.makeRotationX(viewTransform, game.cameraAngle);
-    Mat4x4.multiplyPoint(observer, viewTransform, [0,0,25]);  // apply camera rotation   
-    scene.lookAt(observer, [0,0,0], [0,10,0]);
 
-    scene.beginFrame();
-    scene.animate();
-    scene.draw();
-    scene.endFrame();
-
+				{ // DRAW FRAME
+						scene.beginFrame();
+						scene.animate();
+						scene.draw();
+						scene.endFrame();
+				}
     window.requestAnimationFrame(animate);
   };
 
-  // Go!
+  // GO!
   animate();
 };

@@ -72,11 +72,11 @@ COLLISION_TYPE = {
 		BOTTOM_RIGHT: 8
 }
 
-function getDirectionVector(res, origin, destination){
+function getDirectionVector(out, origin, destination){
 		var magnitude = euclidean_distance(origin[0], origin[1], destination[0], destination[1]);
 
-		res[0] = (destination[0] - origin[0])/magnitude
-		res[1] = (destination[1] - origin[1])/magnitude;
+		out[0] = (destination[0] - origin[0])/magnitude
+		out[1] = (destination[1] - origin[1])/magnitude;
 }
 
 function multiply(out, a, s){

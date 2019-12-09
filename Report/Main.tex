@@ -1,0 +1,80 @@
+\documentclass{report}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[margin=1.2in]{geometry}
+\usepackage{courier}
+\usepackage{float}
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage{pdfpages}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codeblack}{rgb}{0,0,0}
+\definecolor{codered}{rgb}{0.867,0,0}
+\definecolor{backcolour}{rgb}{ 0.95,0.95,0.95}
+\definecolor{codeorange}{rgb}{1,0.447059,0}
+\definecolor{codegrey}{rgb}{0.1, 0.1, 0.1}
+\definecolor{codeblue}{rgb}{0.29, 0.52, 0.56}
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily\color{codeblack},
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codered},
+    keywordstyle=\color{codeorange},
+    numberstyle=\color{codeblack},
+    stringstyle=\color{codegreen},
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=10pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+\lstset{style=mystyle}
+
+\newcommand{\ul}[1]{\underline{#1}}
+\newcommand{\ull}[1]{\underline{\underline{#1}}}
+\newcommand{\triangleBrac}[1]{\textless{#1}\textgreater}
+\newcommand{\un}{\textunderscore}
+
+\begin{document}
+\title{CPS3231  - Computer Graphics - Assignment Report}
+\author{Daniel Cauchi}
+\date{}
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+This is the report for the CPS3231 - Computer Graphics assignment, where a clone of the Arkanoid game was implemented in 3D using WebGL. Object spawning, camera movement, physics, illumination and powerups were implemented and are discussed in chapters 2-6 of this report in that order. Additional features are discussed in chapter 7. A video showcase within a README file is also presented in order to show the game working in order. This README file will also contain any additional instructions.
+
+\chapter{Tasks}
+\input{SubFiles/ObjectSpawning}
+\pagebreak
+\input{SubFiles/Camera}
+\pagebreak
+\input{SubFiles/Physics}
+\pagebreak
+\input{SubFiles/Lights}
+\pagebreak
+\input{SubFiles/Powerups}
+\pagebreak
+\input{SubFiles/Extras}
+\pagebreak
+
+\chapter{Conclusion}
+%This concludes the report for the CPS2000-Compilers Assignment. For further information view the attached README to get info on directory structure and how to use the compiler. The video showcase includes some examples which show the compiler's functionality and features in action. The appropriate code and test cases were shown. 
+
+%Inside the folder containing this report are the project ﬁles as sub-folders, including the README, CMakeLists and sample InputFiles to test the compiler with.
+
+
+\pagebreak
+
+\pagebreak
+\input{SubFiles/Appendix}
+\end{document}
