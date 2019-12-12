@@ -36,6 +36,7 @@ var main=function()
 		{ // SET UP GEOMETRY PRIMITIVES
 				var sphere = makeSphere([0,0,0], 1, 50, 50, [0,0,0]);
 				var quad = makeCuboid([0,0,0], 1, 1, 1);
+				var rect = makeRectangle([0,0,0], 1,1);
 		}
 
 		{ // SET UP GEOMETRY
@@ -88,6 +89,13 @@ var main=function()
 						particle.vertex = sphere.vertex;
 						particle.compile(scene);
 				}
+				{ // ADD BACKGROUND
+						var background = new Model();
+						background.name = "background";
+						background.index = quad.index;
+						background.vertex = quad.vertex;
+						background.compile(scene);
+				}
 		}
 
 		{// SET UP PHYSICS ITEMS
@@ -110,7 +118,7 @@ var main=function()
 				for(var i = 0; i < game.bulletPoolAmount; ++i){
 						game.bullets.push(new CircObject());
 						game.bullets[i].position = [100, 100];
-						game.bullets[i].radius = 0.1;
+						game.bullets[i].radius = 0.3;
 				}
 
 				for(var i = 0; i < game.additionalBallsPoolAmount; ++i){
@@ -122,7 +130,7 @@ var main=function()
 				for(var i = 0; i < game.particlesPerPool * game.particlesPoolAmount; ++i){
 						game.particles.push(new CircObject());
 						game.particles[i].position = [0, 100];
-						game.particles[i].radius = game.particlesSize;
+						game.particles[i].radius = 0;
 				}
 
 				game.ball.position = [0,-game.wallHeight/2 + 0.5 + game.ballScale];
@@ -243,6 +251,15 @@ var main=function()
 						material_oil.setDiffuse([1,1,1]);
 						material_oil.bind(gl, scene.shaderProgram);
 				}
+				{ // BACKGROUND
+						var material_background = new Material();
+						material_background.setAlbedo(gl, textureList.galaxy);
+						material_background.setShininess(300);
+						material_background.setSpecular([0,0,0]);
+						material_background.setAmbient([1,1,1]);
+						material_background.setDiffuse([1,1,1]);
+						material_background.bind(gl, scene.shaderProgram);
+				}
 		}
 
 		{ // ASSIGN MATERIALS TO OBJECTS
@@ -259,6 +276,8 @@ var main=function()
 				bullet.material = material_oil;
 				
 				particle.material = material_diffuse_brick;
+
+				background.material = material_background;
 		}
 
 		{ // SET UP SCENE GRAPH
@@ -335,6 +354,11 @@ var main=function()
 								}
 						}
 				}
+				{ // ADD BACKGROUND
+						var backgroundNode = scene.addNode(lightNode_directional, background, "backgroundNode", Node.NODE_TYPE.MODEL);
+						Mat4x4.makeScaling(scalingMatrix, [40, 50 ,100]);
+						Mat4x4.multiply(backgroundNode.transform, backgroundNode.transform, scalingMatrix);
+				}
 		}
 
   var viewTransform = Mat4x4.create(); 
@@ -353,7 +377,8 @@ var main=function()
 				{ // GAME UPDATE
 						{ // PLATFORM MOVEMENT
 								if(game.keysDown[37]){ // LEFT ARROW
-										if(game.platform.position[0] - (game.platform.width)/2 > - (game.wallWidth/2 - 0.6)){
+										if(game.platform.position[0] - (game.platform.width)/2 > - (game.wallWidth/2 - 0.6) 
+												&& (!game.ballIsStuck || game.ball.position[0] - (game.ball.radius)/2 > - (game.wallWidth/2 - 0.75))){
 												game.platform.position[0] -= game.platformSpeed;
 												if(game.ballIsStuck) {
 														game.ball.position[0] -= game.platformSpeed;
@@ -361,7 +386,8 @@ var main=function()
 										}
 								}
 								if(game.keysDown[39]){ // RIGHT ARROW
-										if(game.platform.position[0] + (game.platform.width)/2 < (game.wallWidth/2 - 0.6)){
+										if(game.platform.position[0] + (game.platform.width)/2 < (game.wallWidth/2 - 0.6)
+											 && (!game.ballIsStuck || game.ball.position[0] + (game.ball.radius)/2 < (game.wallWidth/2 - 0.75))){
 												game.platform.position[0] += game.platformSpeed;
 												if(game.ballIsStuck) {
 														game.ball.position[0] += game.platformSpeed;
@@ -376,7 +402,7 @@ var main=function()
 						}
 
 						{ // MOVEMENT
-								// to avoid having ball get stuck
+								// to avoid having ball get stuck moving horizontally
 								if(Math.abs(game.ball.velocity[1]) < 0.05 && game.ball.velocity[0] > 0){
 										game.ball.velocity[1] -= 0.05;
 								}
@@ -775,8 +801,11 @@ var main=function()
 						{ // PARTICLES MOVEMENT
 								for(var i = 0; i < particleGroups.length; ++i){
 										for(var j = 0; j < particleGroups[i].length; ++j){
-
-												Mat4x4.makeScalingUniform(scalingMatrix, (1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize );
+												if((1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize > 0){
+														Mat4x4.makeScalingUniform(scalingMatrix, (1 - (Date.now()-game.particlesStartTime[i])/game.particlesDuration) * game.particlesSize );
+												}else{
+														Mat4x4.makeScalingUniform(scalingMatrix, 0);
+												}
 												Mat4x4.makeTranslation(particleGroups[i][j].transform, [game.particles[i*game.particlesPerPool + j].position[0], game.particles[i*game.particlesPerPool + j].position[1],0]);
 												Mat4x4.multiply( particleGroups[i][j].transform, particleGroups[i][j].transform, scalingMatrix);
 										}

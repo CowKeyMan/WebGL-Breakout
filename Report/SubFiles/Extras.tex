@@ -1,0 +1,24 @@
+\chapter{Extras}
+To make the game more enjoyable, I decided to put in some additional things.
+
+\section{Music}
+The first of these is the music and sound effects. These were implemented by referencing within the HTML file then playing them trough javascript when the event when they should play happens. The music is a looped song which plays when the player first shoots the ball. Sound effects also play for the following events:
+\begin{itemize}
+	\item Destroying brick
+	\item Shooting bullet
+	\item Charging up the platform to shoot the ball (Also acts as an audio queue to show when max speed has been reached)
+	\item Ball hits the ground
+	\item Balls collide
+	\item Collecting powerup
+	\item Hitting platform
+	\item Hitting wall
+	\item Winning
+	\item Losing
+\end{itemize}
+The music was found on youtube audio library and the rest of the sound effects were found on youtube or freesound.org.
+
+\section{Particles}
+Particles are used in most modern games. These subtle yet very visually appealing explosions make the game look more natural and rewarding. Hence I put particles when bricks break. Although normally billboards are used for particles, this simple particle system uses a pool of particles and takes four of that pool and spawns them where the brick broke for a fraction of a second. They appear, move towards a random direction and fade away (using scaling) so that they appear to fade away into nothing. An image showing the particles is very difficult to obtain as a single frame of these looks weird, hence please look at the video and look at the small balls which appear when the bricks break.
+
+\section{Background}
+For this, a skybox and a tiling image of a starry sky was used. The image was obtained from https://projideas.com/img/get.
