@@ -9,7 +9,7 @@ The following files were downloaded from VLE and used as is without modification
 	\item \textbf{matrix.js}
 \end{itemize}
 
-The following scripts were downloaded and edited slightly:
+The following scripts were downloaded and modified slightly:
 
 \begin{itemize}
 	\item \textbf{textures.js}: Removed previous textures and added new ones (listed below) and put the \textit{convertTextures} function inside it.
@@ -36,11 +36,11 @@ An important script is \textbf{game.js}. This contains important game parameters
 	\item Powerup parameters
 \end{itemize}
 
-Besides these parameters, \textbf{game.js} also contains the physics objects which are used in the game. An array '\textit{keyDown}' of size 256 is initialised to all \textit{false}. When a key on the keyboard is pressed, the index corresponding to the key turns to true, until it is let go at which point the index turns to false again. This is a way to easily detect whether a key is held down or not. For more details on the specific parameters, the comments within the Javascript file describe each parameter and its use.
+Besides these parameters, \textbf{game.js} also contains the physics objects which are used in the game. An array '\textit{keyDown}' of size 256 is initialised to all \textit{false}. When a key on the keyboard is pressed, the index corresponding to the key turns to true, until it is let go at which point the index turns to false again. This is a way to easily detect whether a key is held down or not. For more specific details on the parameters, the comments describe each parameter and its use.
 
-For events which only happen once when a key is pressed down, the \textit{onKeyDown} method is defined. This method, for example, handles the shooting of bullets. A corresponding method \textit{onKeyUp} is also defined, which releases the ball when spacebar is held up after being pressed. These two methods are also the functions where the '\textit{keyDown}' elements are set to true or false accordingly.
+For events which only happen once when a key is pressed down, the \textit{onKeyDown} method is defined. This method, for example, handles the shooting of bullets. A corresponding method \textit{onKeyUp} is also defined, which releases the ball when spacebar is released after being pressed. These two methods are also the functions where the '\textit{keyDown}' elements are set to true or false accordingly.
 
-The \textbf{modelMaker.js} file contains the given \textit{makeSphere} and \textit{makeQuad} functions. \textit{makeSphere} is used for tha balls, powerups, bullets and particles. Alongside these, the functions \textit{makeRectangle} and \textit{makeCuboid} were made, which take the dimensions and positions of said shape and generate the vertices for these shapes. The make cuboid makes 6 quads for the 6 faces and combines them together. This is used for the bricks, platforms and walls.
+The \textbf{modelMaker.js} file contains the given \textit{makeSphere} and \textit{makeQuad} functions. \textit{makeSphere} is used for the balls, powerups, bullets and particles. Alongside these, the functions \textit{makeRectangle} and \textit{makeCuboid} were made, which take the dimensions and positions of said shape and generate the vertices for these shapes. The make cuboid makes 6 quads for the 6 faces and combines them together. This is used for the bricks, platforms and walls.
 
 The file \textbf{objectPool.js} contains a function \textit{ObjectPool} which aids object pooling. A pool is defined by the developer, then the function \textit{getNext} can be used to rotate (iterating where the 'queue' is circular so when it reaches the end, it start from the beginning) trough the objects in the pool. This is done as both an optimisation as well as a simplification step, so that objects do not need to be continuously created and destroyed. These pools are used for the particles, additional balls, bullets and powerups.
 
