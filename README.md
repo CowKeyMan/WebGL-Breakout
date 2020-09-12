@@ -2,7 +2,7 @@
 
 Assignment for Computer Graphics study unit
 
-## Video SHowcase:
+## Video Showcase:
 
 https://www.youtube.com/watch?v=AlgIYVwaaLg
 
